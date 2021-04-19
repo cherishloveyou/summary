@@ -121,7 +121,7 @@ struct MNPerson_IMPL{
 
 ![](https://raw.githubusercontent.com/cherishloveyou/summary/main/iOS/Assets/Question1/18569867-bdedc38d7a25c738.png)
 
-![](https://raw.githubusercontent.com/cherishloveyou/summary/main/iOS/Assets/Question1/18569867-832ba979a35c5834.png)
+
 
 _name的本质，先找到 isa，然后跳过 isa 的八个字节，就找到 _name这个变量
 
@@ -167,7 +167,7 @@ objc_msgSendSuper(arg, @selector(viewDidLoad));
 
 
 
-![](https://raw.githubusercontent.com/cherishloveyou/summary/main/iOS/Assets/Question1/18569867-bb47154d23a130b2.wepb)
+![](https://raw.githubusercontent.com/cherishloveyou/summary/main/iOS/Assets/Question1/18569867-bb47154d23a130b2.png)
 
 所以等价于 _name = self = 当前ViewController，所以最后输出
 
@@ -175,7 +175,7 @@ objc_msgSendSuper(arg, @selector(viewDidLoad));
 self.name = <ViewController: 0x7fc6e5f14970>
 ```
 
-
+![](https://raw.githubusercontent.com/cherishloveyou/summary/main/iOS/Assets/Question1/18569867-832ba979a35c5834.png)
 
 #### 话外篇 super 的本质
 
@@ -195,3 +195,4 @@ objc_msgSendSuper2({self,
 
 [**转载请注明出处！**](https://www.jianshu.com/p/d88a83e37a04)
 
+[**转载请注明出处！**](https://www.jianshu.com/p/d628f1b9e51e)
