@@ -77,7 +77,8 @@ c = 0x7ffee87e9fd4
 - 局部变量是在栈空间
 - 上图可以发现，a先定义，a的地址比b高，得出结论：**栈的内存分配是从高地址到低地址**
 - **栈的内存是连续的** (这点也很重要！！)
-- 
+
+  
 
 > OC方法的本质，其实是函数调用, 底层就是调用 objc_msgSend() 函数发送消息。
 
@@ -193,6 +194,4 @@ objc_msgSendSuper2({self,
 
 函数内部逻辑，拿到第二个成员 - 当前类，通过superClass指针找到他的父类，从superClass开始搜索，最终结果是差不多的~
 
-[**转载请注明出处！**](https://www.jianshu.com/p/d88a83e37a04)
-
-[**转载请注明出处！**](https://www.jianshu.com/p/d628f1b9e51e)
+[**Runtime原理探究**](https://www.jianshu.com/p/d628f1b9e51e)

@@ -192,19 +192,31 @@
 ## 参考文章
 
 * [绘制像素到屏幕上](https://objccn.io/issue-3-1/)
+
 * [iOS图形原理与离屏渲染](http://sonnewilling.com/blog/2016/10/19/iostu-xing-yuan-li-yu-chi-ping-xuan-ran/#anchor1.1)，在1.4.1中，`这也是为什么 CALayer 有一个叫做 opaque 的属性了。如果这个属性为 NO，GPU 将不会做任何合成，而是简单从这个层拷贝，不需要考虑它下方的任何东西(因为都被它遮挡住了)。`中的 `opaque`属性为`NO`，`GPU`将不会做任何合成，这句话时错误的，应该是为`YES`，`GPU`才不会做任何合成。
+
 * [iOS 保持界面流畅的技巧](https://blog.ibireme.com/2015/11/12/smooth_user_interfaces_for_ios/)
+
 * [Advanced Graphics and Animations for iOS Apps(session 419)](https://github.com/100mango/zen/blob/master/WWDC%E5%BF%83%E5%BE%97%EF%BC%9AAdvanced%20Graphics%20and%20Animations%20for%20iOS%20Apps/Advanced%20Graphics%20and%20Animations%20for%20iOS%20Apps.md)
+
 * [使用 ASDK 性能调优 - 提升 iOS 界面的渲染性能](https://draveness.me/asdk-rendering)
+
 * [Designing for iOS: Graphics &amp; Performance](https://robots.thoughtbot.com/designing-for-ios-graphics-performance)
+
 * [iOS离屏渲染之优化分析](https://www.jianshu.com/p/52c72f18e142)
+
 * [iOS视图渲染以及性能优化总结](https://www.jianshu.com/p/b29c682679c4?utm_campaign=maleskine&utm_content=note&utm_medium=seo_notes&utm_source=recommendation)
+
 * [iOS 离屏渲染](https://www.jianshu.com/p/1c80ccc01919?utm_campaign=maleskine&utm_content=note&utm_medium=seo_notes&utm_source=recommendation)
+
 * [深刻理解移动端优化之离屏渲染](https://www.jianshu.com/p/d74398c50fe1?utm_campaign=maleskine&utm_content=note&utm_medium=seo_notes&utm_source=recommendation)
+
 * [iOS 流畅度性能优化、CPU、GPU、离屏渲染](https://www.jianshu.com/p/d27323c18790?utm_campaign=maleskine&utm_content=note&utm_medium=seo_notes&utm_source=recommendation)
+
 * [iOS 图形性能优化锦集](http://www.bijishequ.com/detail/268411)
+
 * [离屏渲染优化详解：实例示范+性能测试](https://www.jianshu.com/p/ca51c9d3575b)
 
-如有内容错误，欢迎 [issue](https://github.com/CYBoys/Blogs/issues/new) 指正。
+  
 
 [**转载请注明出处！**](https://github.com/CYBoys/Blogs/blob/master/iOS/ios-performance-optimization-summary.md)
