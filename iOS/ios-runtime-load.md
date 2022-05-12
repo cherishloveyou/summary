@@ -91,8 +91,7 @@ dyld_register_image_state_change_handler(dyld_image_state_dependents_initialized
 有新的镜像被加载到 runtime 时，调用 `load_images` 方法，并传入最新镜像的信息列表 `infoList`：
 
 ```objective-c
-const char *
-load_images(enum dyld_image_states state, uint32_t infoCount,
+const char *load_images(enum dyld_image_states state, uint32_t infoCount,
             const struct dyld_image_info infoList[])
 {
     bool found;
@@ -157,7 +156,7 @@ load_images(enum dyld_image_states state, uint32_t infoCount,
 
 ### 准备 + load 方法
 
-我们重新回到 `load_images` 方法，如果在扫描镜像的过程中发现了 `+ load` 符号：
+我们重新回到 `load_images` 方法，如果在扫描镜像的过程中发现了 `+load` 符号：
 
 ```objective-c
 for (uint32_t i = 0; i < infoCount; i++) {

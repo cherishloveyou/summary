@@ -98,7 +98,7 @@ static void __main_block_func_0(struct __main_block_impl_0 *__cself, int a, int 
 int main(int argc, const char *argv[]) {
     @autoreleasepool {
         int num = 6;
-        void (^ aBlock)(void) = ^{
+        void (^aBlock)(void) = ^{
             NSLog(@"num is %d", num);
         };
         num = 66;

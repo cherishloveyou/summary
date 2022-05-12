@@ -156,7 +156,7 @@ checkVersionedPaths();
 
 ```c
 // 加载插入的动态库
-if	( sEnv.DYLD_INSERT_LIBRARIES != NULL ) {
+if( sEnv.DYLD_INSERT_LIBRARIES != NULL ) {
     for (const char* const* lib = sEnv.DYLD_INSERT_LIBRARIES; *lib != NULL; ++lib) 
         loadInsertedDylib(*lib);
 }

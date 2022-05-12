@@ -1,4 +1,4 @@
-# UIWebview
+# Webview
 
 在 iOS 平台加载一个 H5 网页，需要经过哪些步骤：
 
@@ -54,8 +54,6 @@
 
 正常拦截处理，但是又发现拦截不了post请求(拦截到的post请求body体为空)，即使在canInitWithRequest:方法中设置对于POST请求的request不处理也不能解决问题
 
-
-
 - 基于 LocalWebServer 实现 WKWebView 离线资源加载
 - 使用WKURLSchemeHandler实现 WKWebView 离线资源加载
 
@@ -83,3 +81,10 @@ WKWebView 只允许开发者拦截自定义 Scheme 的请求，不允许拦截 �
 
 [解析 WKWebView 的 Cookie 封锁](https://juejin.cn/post/7008547869129408548)
 
+[从零收拾一个hybrid框架](http://awhisper.github.io/2018/01/02/hybrid-jscomunication/)
+
+[HTML5 容器入门解析：支付宝 Hybrid 方案原理与实战](https://gitchat.csdn.net/activity/5d552a71e5a42b77df3537d4?utm_source=so)
+
+[iOS H5启动加载优化方案](https://juejin.cn/post/7087095891152076807)
+
+[iOS 端 h5 页面秒开优化实践](https://juejin.cn/post/6844903954212454413#heading-4)

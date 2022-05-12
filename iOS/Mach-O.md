@@ -58,7 +58,7 @@
 
 ```c
 struct mach_header_64 {
-	uint32_t	magic;		/* 魔术，快速定位属于64还是32位 */
+	uint32_t	magic;		  /* 魔术，快速定位属于64还是32位 */
 	cpu_type_t	cputype;	/* cpu类型，如ARM */
 	cpu_subtype_t	cpusubtype;	/* cpu具体类型，如arm64/armv7 */
 	uint32_t	filetype;	/* 文件类型 */

@@ -4,7 +4,31 @@
 
 ### 什么是RunLoop
 
-​      **RunLoop 是事件处理循环,在循环中用来处理程序运行过程中出现的各种事件。这些事件包括但不限于用户操作、定时器任务、内核消息、有顺序的处理各种Event。因为runLoop有状态，可以决定线程在什么时候处理什么事件，节省CPU资源。通常情况下，事件并不是永无休止的产生，所以也就没必要让线程永无休止的运行。runloop可以在无事件处理时进入休眠状态，避免无休止的do...while跑空圈。 一个线程对应一个RunLoop，程序运行是主线程的RunLoop默认启动，子线程的RunLoop按需启动（调用run方法）。runloop是线程的事件管理者，或者说是线程的事件管家，他会按照顺序管理线程要处理的事件，决定哪些事件在什么时候提交给主线程处理。**
+​      **RunLoop 是事件处理循环,在循环中用来处理程序运行过程中出现的各种事件。这些事件包括但不限于用户操作、定时器任务、内核消息、有顺序的处理各种Event。因为runLoop有状态，可以决定线程在什么时候处理什么事件，节省CPU资源。通常情况下，事件并不是永无休止的产生，也就没必要让线程永无休止的运行。runloop可以在无事件处理时进入休眠状态，避免无休止的do...while跑空圈。 一个线程对应一个RunLoop，程序运行是主线程的RunLoop默认启动，子线程的RunLoop按需启动（调用run方法）。runloop是线程的事件管理者，它会按照顺序管理线程要处理的事件，决定哪些事件在什么时候提交给主线程处理。**
+
+```
+什么是事件循环呢？
+  事件循环（状态切换）
+没有消息需要处理时，休眠以避免资源占用
+  用户态——>内核态
+有消息需要处理时，立刻被唤醒
+  用户态<—— 内核态
+   
+什么是事件/消息进行管理呢？
+
+RunLoop 通过 mach_msg()函数接收、发送消息来进行管理。
+它的本质是调用函数 mach_msg_trap()，相当于是一个系统调用，会触发内核状态切换。
+可以做到在有事做的时候做事，没事做的时候，会由用户态切换到内核态，避免资源浪费。
+
+如何实现事件、消息的管理
+mach_msg() 函数实际上是调用了一个 Mach 陷阱 (trap)，
+即函数mach_msg_trap()，陷阱这个概念在 Mach 中等同于系统调用。
+当你在用户态调用 mach_msg_trap() 时会触发陷阱机制，切换到内核态；
+内核态中内核实现的 mach_msg() 函数会完成实际的工作，
+```
+
+
+
 
 ### RunLoop基本作用
 
@@ -29,14 +53,25 @@
 mode作为runloop和source\timer\observer之间的桥梁。应用在启动时main runloop会注册5个mode。分别如下：
 
 1. kCFRunLoopDefaultMode: App的默认 Mode，通常主线程是在这个 Mode 下运行的。
+
 2. UITrackingRunLoopMode: 界面跟踪 Mode，用于 ScrollView 追踪触摸滑动，保证界面滑动时不受其他 Mode 影响。
+
 3. UIInitializationRunLoopMode: 在刚启动 App 时第进入的第一个 Mode，启动完成后就不再使用。
+
 4. GSEventReceiveRunLoopMode: 接受系统事件的内部 Mode，通常用不到。
+
 5. kCFRunLoopCommonModes: 这是一个占位的 Mode，没有实际作用。
 
-你可以在[这里](https://iphonedev.wiki/index.php/CFRunLoop)看到更多的苹果内部的 Mode，但那些 Mode 在开发中就很难遇到了。
+   
 
-**一个 RunLoop 包含若干个 Mode，每个 Mode 又可以包含若干个 Source/Timer/Observer。每次调用 RunLoop  的主函数时，只能指定其中一个 Mode，这个Mode就是runloop的 CurrentMode。如果需要切换 Mode，只能退出 Loop，再重新指定一个  Mode 进入。这样做主要是为了分隔开不同组的 Source/Timer/Observer，让其互不影响。**
+```
+一个`Runloop`有一个`modes`
+一个`modes` 是由多个`CFRunLoopMode`组成
+一个`CFRunLoopMode`是由 `name/Source/Timer/Observer` 组成
+`RunLoop` 只能运行一个 `Mode`,`RunLoop` 只会处理它当前 `Mode` 的事件
+```
+
+**每次调用 RunLoop  的主函数时，只能指定其中一个 Mode，这个Mode就是runloop的 CurrentMode。如果需要切换 Mode，只能退出 Loop再重新指定一个Mode 进入。这样做主要是为了分隔开不同组的Source/Timer/Observer，让其互不影响。**
 
 mode中有一个特殊的mode叫做**commonMode**。commonMode并不是一个真正的mode，而是若干个被标记为commonMode的普通mode。所以commonMode本质上是一个集合，该集合存储的是mode的名字，也就是字符串，记录所有被标记为common的modeName。当我们向commonMode添加source\timer\observer时，本质上是遍历这个集合中的所有的mode，把item依次添加到每个被标记为common的mode中。
 
@@ -44,13 +79,13 @@ mode中有一个特殊的mode叫做**commonMode**。commonMode并不是一个真
 
 ## Source0和Source1区别
 
-Source0：source0是App内部事件，由App自己管理的，像UIEvent、CFSocket都是source0。source0并不能主动触发事件，当一个source0事件准备处理时，要先调用 CFRunLoopSourceSignal(source)，将这个 Source 标记为待处理。然后手动调用 CFRunLoopWakeUp(runloop) 来唤醒 RunLoop，让其处理这个事件。框架已经帮我们做好了这些调用，比如网络请求的回调、滑动触摸的回调，我们不需要自己处理。
+Source0：source0是App内部事件，由App自己管理。像UIEvent、CFSocket都是source0。source0并不能主动触发事件，当一个source0事件准备处理时，你需要先调用 CFRunLoopSourceSignal(source)，将这个 Source 标记为待处理，然后手动调用 CFRunLoopWakeUp(runloop) 来唤醒 RunLoop让其处理这个事件。框架已经帮我们做好了这些调用，比如网络请求的回调、滑动触摸的回调，我们不需要自己处理。
 
-Source1：**由RunLoop和内核管理，Mach port驱动**，如CFMachPort、CFMessagePort。source1包含了一个 mach_port 和一个回调（函数指针），被用于通过内核和其他线程相互发送消息。这种 Source 能主动唤醒 RunLoop 的线程。
+Source1：**由RunLoop和内核管理，Mach Port驱动**，来自系统内核或者其他进程或线程的事件，可以主动唤醒休眠中的RunLoop。(如CFMachPort、CFMessagePort)source1包含了一个 mach_port 和一个回调（函数指针），被用于通过内核和其他线程相互发送消息,这种 Source 能主动唤醒 RunLoop 的线程。
 
 ## UIButton点击事件是source0还是source1？
 
-UIButton的点击事件到底是source0还是source1，这是很多人困惑的一点。断点打印堆栈看是从source0调出的，而有人说是source1。其实不难理解，我们上面说了，source1是由runloop和内核管理，mach port驱动。所以button的点击事件首先是由source1 接收IOHIDEvent，然后再回调 IOHIDEventSystemClientQueueCallback() 内触发的source0，source0再触发的 _UIApplicationHandleEventQueue()。所以打印调用堆栈发现UIButton事件是source0触发的。我们可以在 IOHIDEventSystemClientQueueCallback() 处打一个 Symbolic Breakpoint 来验证这一点。
+UIButton的点击事件到底是source0还是source1，这是很多人困惑的一点。断点打印堆栈看是从source0调出的，而有人说是source1。其实不难理解，我们上面说了source1是由runloop和内核管理，mach port驱动。所以button的点击事件首先是由source1 接收IOHIDEvent，然后再回调 IOHIDEventSystemClientQueueCallback() 内触发的source0，source0再触发的 _UIApplicationHandleEventQueue()。所以打印调用堆栈发现UIButton事件是source0触发的。我们可以在 IOHIDEventSystemClientQueueCallback() 处打一个 Symbolic Breakpoint 来验证这一点。
 
 事实上，即便没有点击button，**只要触摸屏幕，就会产生一个CFRunLoopDoSource1 到IOHIDEventSystemClientQueueCallback() 的调用过程**。而点击按钮时，除了上述流程，会有一条新的调用从 GSEventRunModal -> CFRunLoopRunSpecific -> CFRunLoopDoSources0，所以看起来按钮点击事件还是直接触发的 source0事件。
 
@@ -95,3 +130,4 @@ SDWebImage中的动画播放类SDAnimatedImageView中也有runloop的影子。�
 
 [**Runloop**](https://juejin.cn/post/6960941386828873758)
 
+[当面试官问Runloop时,想听到的答案](https://juejin.cn/post/7081932582576717831)
