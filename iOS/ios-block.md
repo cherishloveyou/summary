@@ -90,7 +90,7 @@ static void __main_block_func_0(struct __main_block_impl_0 *__cself, int a, int 
 
 ### 2.1 局部变量的捕获（auto变量）
 
-​        auto 类型的局部变量（我们定义出来的变量，默认都是 auto 类型，只是省略了），block 内部会自动生成一个同类型成员变量，用来存储这个变量的值，访问方式为`值传递`。**auto 类型的局部变量可能会销毁，其内存会消失，block 将来执行代码的时候不可能再去访问那块内存，所以捕获其值**。由于是值传递，我们修改 block 外部被捕获变量的值，不会影响到 block 内部捕获的变量值。
+​        auto 类型的局部变量（我们定义出来的变量，默认都是 auto 类型），block 内部会自动生成一个同类型成员变量，用来存储这个变量的值，访问方式为`值传递`。**auto 类型的局部变量可能会销毁，其内存会消失，block 将来执行代码的时候不可能再去访问那块内存，所以捕获其值**。由于是值传递，我们修改 block 外部被捕获变量的值，不会影响到 block 内部捕获的变量值。
 
 请问，下面的代码打印结果是什么？
 
@@ -232,7 +232,7 @@ static void __main_block_func_0(struct __main_block_impl_0 *__cself) {
 
 通过以上分析可知 num 的值发生改变是理所应当的了。
 
-结论：无论是被 static 修饰的局部变量还是默认被 auto 修饰的局部变量都会被 block 捕获，只不过 static 修饰的局部变量是地址传递，auto 修饰的局部变量是值传递。
+结论：**无论是被 static 修饰的局部变量还是默认被 auto 修饰的局部变量都会被 block 捕获，只不过 static 修饰的局部变量是地址传递，auto 修饰的局部变量是值传递**。
 
 ### 2.3 全局变量
 
@@ -280,9 +280,9 @@ static void __main_block_func_0(struct __main_block_impl_0 *__cself) {
 }
 ```
 
-- 在 block 的结构体中并没有捕获全局变量，在 block 执行的代码中直接访问全局变量，因为全局变量的内存会一直存在，直接获取全局变量的值直接访问就可以了。
+**block 的结构体中并没有捕获全局变量，在 block 执行的代码中直接访问全局变量，因为全局变量的内存会一直存在，直接获取全局变量的值直接访问就可以了。**
 
-  
+
 
 
 ## 三、Block的类型
@@ -293,9 +293,7 @@ static void __main_block_func_0(struct __main_block_impl_0 *__cself) {
 | `__NSStackBlock__`  | 访问了`auto变量`               | 栈区   | 从栈复制到堆，类型改变为`__NSMallocBlock__` |
 | `__NSMallocBlock__` | `__NSStackBlock__`调用了`copy` | 堆区   | 引用计数`+1`，类型不改变                    |
 
-在`ARC`下`Block`访问`auto变量`时系统默认帮我们进行了`copy`操作，`NSGlobalBlock`访问了`auto变量`时会变成`NSStackBlock`，当`NSStackBlock`进行`copy`操作后会变成`NSMallocBlock`
-
-
+**在ARC下Block访问auto变量时系统默认帮我们进行了copy操作，NSGlobalBlock访问了auto变量时会变成NSStackBlock，当NSStackBlock进行copy操作后会变成NSMallocBlock**。
 
 我们已经知道 block 的本质是一个OC对象，那么一个OC对象是一定有他所属的类型的。block也不例外，看下面的代码打印结果是什么？
 

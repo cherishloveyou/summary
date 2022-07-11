@@ -1,6 +1,6 @@
 # AutoreleasePool
 
-AutoreleasePool是OC中的一种内存管理机制，它持有释放池里的对象的所有权，在自动释放池销毁时，统一给所有对象发送一次`release`消息。通过这个机制，可以**延迟对象的释放**。
+AutoreleasePool是OC中的一种内存自动回收机制，它持有释放池里的对象的所有权，在自动释放池销毁时，统一给所有对象发送一次`release`消息。通过这个机制可以**延迟对象的释放**。
 
 在OC中 自生成并持有对象的方式只有 *alloc/new/copy/mutableCopy* 四种 ，其他方式均为非自生成并持有对象 
 
@@ -192,7 +192,7 @@ NSMutableArray *arr = [NSMutableArray arrayWithObjects:@"hh", nil];
 - 然后给在代码块里创建的每个自动释放的对象发送一个`autorelease`消息，将这些自动释放的对象加入到`AutoreleasePool`对象里。
 - 最后在`AutoreleasePool`对象将要销毁时，通过调用`objc_autoreleasePoolPop`函数给池中每个自动释放的对象发送一次`release`消息，再销毁`AutoreleasePool`对象。
 
-> 注意区分`AutoreleasePool对象`和`自动释放的对象`，`AutoreleasePool对象`指的是实例化的一个自动释放池（本质也是对象），而 `自动释放的对象`是指被加入到这个池中的对象。
+> 注意区分`AutoreleasePool对象`和`自动释放的对象`，AutoreleasePool对象指的是实例化的一个自动释放池（本质也是对象），而 自动释放的对象是指被加入到这个池中的对象
 >  `AutoreleasePool`的原理可阅读后面的底层分析一文。
 
 #### AutoreleasePool在Runloop中的创建和销毁

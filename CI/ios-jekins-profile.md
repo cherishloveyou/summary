@@ -3,7 +3,7 @@
 
 - #### Debug 
 
-```
+```shell
 #!/bin/zsh
 
 #begin 
@@ -73,7 +73,7 @@ fi
 
 - #### Distribution
 
-```
+```shell
 #!/bin/zsh
 
 #begin 

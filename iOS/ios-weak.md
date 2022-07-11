@@ -31,7 +31,7 @@ int main(){
 #### 2.weak的实现原理
 
 第一、通过weak编译解析，可以看出来weak通过runtime初始化的并维护的。
-第二、weak和strong都是Object-C的修饰词，而strong是通过runtime维护的一个自动计数表结构。
+第二、weak和strong都是Objective-C的修饰词，而strong是通过runtime维护的一个自动计数表结构。
 综上：weak是有Runtime维护的weak表。
 
 在runtime源码中，可以找到'objc-weak.h'和‘objc-weak.mm’文件，并且在objc-weak.h文件中关于定义weak表的结构体以及相关的方法。

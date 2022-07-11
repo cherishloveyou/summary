@@ -339,7 +339,6 @@ extension AnyList {
         return self.list[index]
     }
 }
-
 ```
 
 #### 31.inout 的作用

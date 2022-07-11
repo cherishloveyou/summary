@@ -69,7 +69,48 @@ WKWebView 只允许开发者拦截自定义 Scheme 的请求，不允许拦截 �
 
 
 
+#### 与 JavaScript 的交互
 
+分别讲解 UIWebView 与 WKWebView 是如何与 JS 交互的。
+
+##### UIWebView 与 JS 交互
+
+- iOS 6 之前，`UIWebView` 是不支持共享对象的，Web 端需要通知 Native，需要通过修改 location.url，利用跳转询问协议来间接实现，通过定义 URL 元素组成来规范协议。
+- iOS 7 之后，新增了 `JavaScriptCore` 库，内部有一个 `JSContext` 对象，可以用它来实现共享。
+
+综上所述，UIWebView 与 JS 的交互，是通过 JavaScriptCore 库中的 `JSContext` 对象。
+
+**JS 执行原生代码**
+
+JS 是不能执行 OC 代码的，但是可以`间接的执行`，即 JS 将需要执行的操作封装到网络请求中，然后原生代码中拦截这个请求，获取 url 中的字符串解析即可，这里需要用到 `WebView(_:shouldStartLoadWith:navigationType:)` 这个代理方法。
+
+**原生调用 JS 代码**
+
+原生条用 JS 代码需要用到 UIWebView 的一个方法，即 `stringByEvaluatingJavaScript(from:)` 函数。
+
+
+
+##### WKWebView 与 JS 交互
+
+- 在 WKWebView 上，Web 的 window 对象提供 `WebKit` 对象实现共享；
+- 而 WKWebView 绑定共享对象，是通过特定的构造方法实现，即通过指定 `WKUserContentController` 对象的 `ScriptMessageHandler` 经过 `Configuration` 参数构造时传入；
+- 而 Handler 对象需要实现指定协议，实现指定的协议方法，当 JS 端通过 `window.Webkit.messageHandlers` 发送 Native 消息时，handler 对象的协议方法被调用，然后通过协议方法的相关参数传值。
+
+综上所述，WKWebView 与 JS 的交互，是通过 `WKScriptMessageHandler` 协议的代理方法进行的。
+
+**JS 执行原生代码**
+
+需要通过 `WKScriptMessageHandler` 代理中的函数实现，即需要使用 `userContentController:didReceiveScriptMessage` 代理方法。
+
+**原生调用 JS 代码**
+
+通过 WKWebView 中的一个方法实现，即 `evaluateJavaScript(_:completionHandler:)` 函数。
+
+
+
+[如何接管WKWebView的网络请求？](https://juejin.cn/post/7109771712526286862)
+
+[探索 WKWebView 新增功能](https://juejin.cn/post/7101545525576466439)
 
 [基于 prefetch 的 H5 离线包方案](https://juejin.cn/post/7011837444865654797)
 

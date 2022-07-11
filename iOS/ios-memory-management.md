@@ -1,5 +1,9 @@
 ## iOS内层管理
 
+在iOS中内存分为五大区域：`栈去、堆区、全局区、常量区、代码区`
+
+
+
 内存中的对象主要有两类，一类是值类型，比如int、float、struct等基本数据类型，另一类是引用类型，也就是继承自NSObject类的所有的OC对象。前一种值类型不需要我们管理，后一种引用类型是需要我们管理内存的，一旦管理不好，就会产生非常糟糕的后果。
 **为什么值类型不需要管理，而引用类型需要管理呢？那是因为他们分配内存方式不一样。**
 值类型会被放入栈中，他们依次紧密排列，在内存中占有一块连续的内存空间，遵循先进后出的原则。引用类型会被放到堆中，当给对象分配内存空间时，会随机的从内存当中开辟空间，对象与对象之间可能会留有不确定大小的空白空间，因此会产生很多内存碎片，需要我们管理。
@@ -117,10 +121,12 @@ ARC 是苹果引入的一种自动内存管理机制，会根据引用计数自�
 # 内存管理方案技术
 
 - `Tagged Pointer`：(标记指针)，用来处理小对象NSNumber，NSDate、NSString
+
 - `Nonpointer_isa`：非指针类型。简单来说就是64位的二进制数据，不是存的指针，其他位用来存储OC对象一些其他信息
-- `sideTables`：散列表，主要包括`引用计数表`和`弱引用表`
 
+- `sideTables`：当引用计数存储到一定值时，并不会再存储到`Nonpointer_isa`的位域的`extra_rc`，而是会存储到`SideTables`散列表中。在散列表中主要有两个表，分别是`引用计数表、弱引用表`，`同一时间，真机中散列表最多只能有8张`
 
+  
 
 - 什么是tagged Pointer？
 
@@ -277,10 +283,64 @@ static inline bool _objc_isTaggedPointer(const void * _Nullable ptr)
 
 # nonpointer_isa(非指针类型)
 
-isa分为`pointer_isa`(指针类型)和非指针类型(`Nonpointer_isa`),间单的理解就是，如果`isa`是指针类型，那么就是一个纯的地址，没有做其他处理。如果是一个非指针类型，那么`isa`就是64位的地址，不止包含地址，还有其他的一些字段。
+isa分为`pointer_isa`(指针类型)和非指针类型(`Nonpointer_isa`),简单的理解就是，如果`isa`是指针类型，那么就是一个纯的地址，没有做其他处理。如果是一个非指针类型，那么`isa`就是64位的地址，不止包含地址，还有其他的一些字段。
 
 
 
 
+
+# retain原理
+
+进入源码`objc_retain -> retain -> rootRetain`
+
+- 【第一步】判断是否是`Nonpointer_isa`
+- 【第二步】操作引用计数
+  - 如果不是`Nonpointer_isa`，则直接操作`SideTables`散列表
+  - 判断`是否正在释放`，如果正在释放就执行dealloc
+  - 执行`ectra_rc+1`，引用计数+1，并给一个引用计数的`状态标识carry`来判断`ectra_ra`是否满了
+  - 如果`carry`标记状态表示`ectra_rc引用计数满了`，此时开始操作`散列表`，即将`ectra_rc`存储的一半拿出存到`散列表`，
+
+# release原理
+
+通过`setProperty -> reallySetProperty -> objc_release -> release -> rootRelease -> rootRelease`进入rootRelease源码，其中与retain相反
+
+- 判断是否是`Nonpointer isa`，如果不是，操作`散列表-1`
+
+- 如果是，对`extra_rc`中的引用计数-1，并将此时的extra_rc状态存储到`carry`
+
+- 如果`carry == 0`，执行`underflow`
+
+- 执行
+
+  ```
+  underflow
+  ```
+
+  - 判断散列表是否存储了一半引用计数
+  - 如果是，从散列表中取出一半引用计数，进行-1，然后存储到extra_rc中
+  - 如果不是，直接`dealloc`
+
+
+
+# dealloc 原理
+
+进入源码`dealloc -> _objc_rootDealloc -> rootDealloc`
+
+- 判断`是否是小对象`，如果是直接返回
+
+- 判断
+
+  ```
+  是否有isa. nonpointer、cxx、关联对象、弱引用表、引用计数表
+  ```
+
+  - 如果没有，直接free是否内存
+  - 如果有，执行`object_dispose`
+
+
+
+
+
+[iOS 内存管理](https://www.jianshu.com/p/fc487c114402)
 
 [iOS内存管理-Tagged Pointer技术](https://juejin.cn/post/7009932334505918495)

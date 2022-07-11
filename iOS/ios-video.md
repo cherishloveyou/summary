@@ -125,10 +125,17 @@ NALU类型如下：
  6、调用VTCompressionSessionCompleteFrames停止编码器
  7、调用VTCompressionSessionInvalidate销毁编码器
 
-##### 
+
+
+1、PTS（Presentation Time Stamp）：即显示时间戳，这个时间戳用来告诉播放器该在什么时候显示这一帧的数据。
+2、DTS（Decoding Time Stamp）：即解码时间戳，这个时间戳的意义在于告诉播放器该在什么时候解码这一帧的数据。
 
 
 
 [iOS视频开发](https://www.jianshu.com/p/eccdcf43d7d2)
 
+https://juejin.cn/post/6844903549587947527
+
 https://juejin.cn/post/6844903853775650824
+
+https://juejin.cn/post/6844903888638705678
