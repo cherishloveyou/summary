@@ -70,13 +70,12 @@ H.265/HEVC extradata语法
 
 HEVC extradata 示例
 
-
    extradata    如上
-   extrasize    111
- 24| 20         NAL type:  VPS
+   extrasize     111
+ 24| 20           NAL type:  VPS
  25| 00 01      VPS num:   1
  27| 00 19      VPS size:  25字节
- 54| 21         NAL type:  SPS
+ 54| 21           NAL type:  SPS
  55| 00 01      SPS num:   1
  57| 00 29      SPS size:  41字节
 100| 22         NAL type:  PPS
@@ -102,6 +101,7 @@ MediaCodec 与 Annex-B格式
 
 Annex-B 转 AVCC 2
 对于仅接受AVCC格式的播放器(如Quicktime v7.0)，需要进行convert Annex-B to AVCC:
+
 - start code 转为4字节 NAL size
 - SPS, PPS创建 extradata
 
@@ -118,3 +118,5 @@ ffmpeg -i INPUT.mp4 -codec copy -bsf:v hevc_mp4toannexb OUTPUT.ts
 
 
 https://blog.csdn.net/yue_huang/article/details/75126155
+
+https://blog.csdn.net/qq_35585843/article/details/129183886

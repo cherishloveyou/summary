@@ -3,7 +3,7 @@
 ```shell
 将smaples由32bits转换为16bits
 若sample是AV_SAMPLE_FMT_FLTP,则sample是float格式,且值域为[-1.0,1.0]
-若sample是AV_SAMPLE_FMT_S16,则sample是int16格式,且值域为[-32767,+32767]
+若sample是AV_SAMPLE_FMT_S16,则sample是int16格式,且值域为[-32768,+32767]
 ```
 
 ```
@@ -11,7 +11,10 @@ AV_SAMPLE_FMT_S16   kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked  
 AV_SAMPLE_FMT_FLTP  kAudioFormatFlagIsFloat | kAudioFormatFlagIsNonInterleaved
 ```
 
-
+音频数据存储分为 Packed和Planar两种存储方式
+Packed方式为两个声道的数据交错存储；Planar方式为两个声道分开存储。
+Packed:  L R L R L R L R ...
+Planar:   L L L L ... R R R R...
 
 PCM数据解析
 
