@@ -1,5 +1,12 @@
 # Block 的本质
 
+Block在创建的时候，它的内存是分配在栈上的，而不是在堆上。它本身的作用域是属于创建的时候的作用域，一旦在创建的时候的作用域外面调用block将导致程序崩溃。因为栈区的特点就是创建的对象随时可能被销毁，一旦被销毁后续再次调用空对象会造成程序崩溃，**在对block进行copy后，block存放在堆区**。
+
+历史原因需要手动的用`copy`属性来修饰block，让block从stack拷贝到heap，保证block在出了作用域之后也能够让block继续存在，并且以ARC的方式来决定什么时候释放在heap上的block。在2014年9月后的一次编译器优化之后，如果用`strong`修饰block，编译器会自动将blcok从stack拷贝到heap上。
+ 对于开发者来说，这就像处理普通对象一样用`strong`来block就行了。
+
+
+
 **Block 的本质是一个封装了函数调用以及函数调用环境的OC对象，底层是一个struct __main_block_impl_0类型的结构体，结构体中包含一个isa指针。**
 
 看下面一段代码：
@@ -7,7 +14,7 @@
 ```objective-c
 int main(int argc, const char *argv[]) {
     @autoreleasepool {
-        void (^ aBlock)(void) = ^{
+        void (^aBlock)(void) = ^{
             NSLog(@"this is a block");
         };
         aBlock();

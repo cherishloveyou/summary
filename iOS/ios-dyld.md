@@ -14,6 +14,8 @@
 
 ![_dyld_start](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/576c9a1685df42a99d9e1d9c38c6a256~tplv-k3u1fbpfcp-zoom-1.png)
 
+
+
 ## 二. dyld加载流程分析
 
 ### 1. 首先下载[dyld源码](https://opensource.apple.com/tarballs/dyld/)。
@@ -134,6 +136,11 @@ iOS11版本之后，引入dyld3闭包模式(ClosureMode)：加载速度更快，
 **配置缓存代理**
 
 ![img](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/e6f111f8b4254713b2e15afb3c98d8dc~tplv-k3u1fbpfcp-zoom-1.png)
+
+dyld4的针对于的`mach-o`解析器 ( iOS上可执行文件格式是Mach-O格式, 下方也有具体解释) 方面跟dyld3相同，但是引入了 JustInTime 的加载器来优化。
+
+- `dyld3`:  相比`dyld2`新增预构建/闭包, 目的是将一些启动数据创建为闭包存到本地，下次启动将不再重新解析数据，而是直接读取闭包内容
+- `dyld4`: 采用`pre-build + just-in-time` 预构建/闭包+实时解析的双解析模式, 将根据缓存有效与否选择合适的模式进行解析, 同时也处理了闭包失效时候需要重建闭包的性能问题。
 
 #### 4.11 创建主程序的Image
 
@@ -436,6 +443,32 @@ dyld3不再需要分析mach-O头文件，或者查找符号表，这些都是十
 
 
 
+
+
+### dyld4的运行流程
+- dyldStartup；
+
+- "prepare"准备 方法`MainFunc appMain = prepare(state, dyldMA);`处理相关依赖绑定
+
+- 看下`gProcessInfo`有`struct dyld_all_image_infos* gProcessInfo = &dyld_all_image_infos;`是一个存储dyld所有镜像信息的一个结构体
+
+- 进行pre-build, 创建mainLoader（主装载器）, 如果熟悉`dyld3`的小伙伴知道, 旧版本是创建一个`ImageLoader`镜像装载器
+
+-  创建just-in-time。`dyld3` 出于对启动速度的优化的目的, 增加了`预构建(闭包)`。App第一次启动或者App发生变化时会将部分启动数据创建为`闭包`存到本地，那么App下次启动将不再重新解析数据，而是直接读取闭包内容。当然前提是应用程序和系统应很少发生变化，但如果这两者经常变化等, 就会导闭包丢失或失效。所以`dyld4` 采用了 `pre-build + just-in-time` 的双解析模式，`预构建 pre-build` 对应的就是 `dyld3` 中的闭包，`just-in-time` 可以理解为`实时解析`。当然`just-in-time` 也是可以利用 `pre-build` 的缓存的，所以性能可控。有了`just-in-time`, 目前应用首次启动、系统版本更新、普通启动，`dyld4` 则可以根据缓存是否有效选择合适的模式进行解析。
+
+- 装载内容，遍历所有dylibs
+
+- 插入缓存
+
+- 运行初始化方法 runAllInitializersForMain，notifyObjCInit 函数执，行完初始化之后会执行`notifyObjCInit`, 告诉objc 去运行所有 `+load` 方法, 而此时系统`main`还没有执行, 这也就是为什么`+ load`方法执行在`main`前面的原因。由`load_images` → `call_load_methods`→ `call_class_loads`内部也可以看出会 循环调用所有`+load` 方法，直到不再有。
+
+- link动态库和主程序
+
+- 加载主程序入口
+
+  ![5954916-f66c63fdc4de5424](/Users/moon/Documents/summary/iOS/Assets/Dyld/5954916-f66c63fdc4de5424.webp)
+
+  
 
 [iOS底层探究-----dyld程序启动加载流程](https://juejin.cn/post/6983693445969739807)
 

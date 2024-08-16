@@ -99,7 +99,7 @@ VideoToolbox 与 AVCC格式 1
 MediaCodec 与 Annex-B格式
 硬解 支持Annex-B格式，avcC需要做转换，NALU长度替换为start code
 
-Annex-B 转 AVCC 2
+Annex-B 转 AVCC 
 对于仅接受AVCC格式的播放器(如Quicktime v7.0)，需要进行convert Annex-B to AVCC:
 
 - start code 转为4字节 NAL size

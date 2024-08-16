@@ -1,6 +1,6 @@
 # iOS 中 alloc init 和new的区别
 
-**在重写了allocWithZone的前提下，调用alloc函数时，在callAlloc函数内部最终会执行[cls allocWithZone:nil];**
+**在重写了allocWithZone的前提下，调用alloc函数时，在call Alloc函数内部最终会执行[cls allocWithZone:nil];**
 
 **在重写了allocWithZone的前提下，调用new函数，在callAlloc函数内部最终会执行[cls alloc]，然后再走一遍上面分析的alloc的逻辑，最终执行 [cls allocWithZone:nil]**
 
