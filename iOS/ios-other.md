@@ -48,7 +48,7 @@
 
 
 
-```objectivec
+```objective-c
 ## iOS判断是否使用代理IP
 #import "CETCProxyStatus.h"
 

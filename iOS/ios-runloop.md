@@ -125,9 +125,171 @@ SDWebImage中的动画播放类SDAnimatedImageView中也有runloop的影子。�
 其他有使用runLoop的地方还有卡顿监控、异步绘制等。总之，只要我们想要保活线程能够随时处理任务，这个线程必须要有runloop。
 
 
+RunLoop 是 iOS 应用于线程中的一种循环机制。系统本身没有创建 RunLoop 的 API，不过可以通过 currentRunLoop 获取当前 RunLoop。主线程本身就存在一个 RunLoop，而且是运行转态，子线程的 RunLoop 需要手动开启，否知无法监听到输入源与定时源。子线程 RunLoop 随着所在子线程的事件源结束而关闭，随着所在子线程的结束而释放。
 
+##### 获取/创建RunLoop对象
 
+NSRunLoop 对象不是线程安全，如果在不同线程使用同一个 RunLoop 对象，可以用 CFRunLoopRef，保证线程安全。
+
+```objective-c
+[NSRunLoop currentRunLoop]; // 当前线程的runLoop
+[NSRunLoop mainRunLoop]; // 主线程runLoop
+
+CFRunLoopGetCurrent();
+CFRunLoopGetMain();
+
+[NSRunLoop currentRunLoop].getCFRunLoop; //NSRunLoop转CFRunLoopRef
+```
+
+##### 添加定时器及输入源 
+
+```objective-c
+[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
+[[NSRunLoop currentRunLoop] addPort:[NSMachPort port] forMode:NSDefaultRunLoopMode];
+
+CFRunLoopAddTimer(runLoopRef, runLoopTimerRef, kCFRunLoopDefaultMode);
+CFRunLoopAddSource(runLoopRef, runLoopSourceRef, kCFRunLoopDefaultMode);
+```
+
+##### 启动RunLoop
+
+[[NSRunLoop currentRunLoop] run]; // 无条件且以默认的NSDefaultRunLoopMode启动
+[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2.0]]; // 指定过期时间且以默认的NSDefaultRunLoopMode启动
+[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:2.0]]; // 指定过期时间，指定启动方式
+
+CFRunLoopRun(); // 子线程的runLoop需要启动
+CFRunLoopRunInMode(kCFRunLoopDefaultMode, timeInterval, returnAfterSourceHandled);
+
+##### 退出RunLoop
+
+子线程的 RunLoop 会随着事件源的结束而 Exit，所以一般不会主动去停止 RunLoop。
+
+/* 给RunLoop设置超时时间 */
+[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2.0]]; //指定过期时间且以默认的NSDefaultRunLoopMode启动
+
+/* 通知RunLoop停止  */
+CFRunLoopStop([NSRunLoop currentRunLoop].getCFRunLoop); 
+
+##### 主线程场景
+
+可直接使用 timer，默认为 NSDefaultRunLoopMode。
+
+NSTimer *timer = [NSTimer timerWithTimeInterval:1.0 target:self selector:@selector(fireDemo) userInfo:nil repeats:YES];
+UIScrollView 滑动时 RunLoop 切到了 UITrackingRunLoopMode 模式,默认为 NSDefaultRunLoopMode 的 Timer 不会调用，设置为 NSRunLoopCommonModes 就可以恢复正常。 
+
+[[NSRunLoop mainRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+
+##### 子线程场景
+
+开启子线程 RunLoop 时必须添加相应的 timer 或 port，否知运行无效。**子线程 RunLoop 启动时，runMode 之后的代码不会执行，直到 RunLoop 随着 Timer 结束而 Exit 后，才执行 runMode 之后的代码；timer 的 repeats 为 YES 时，不会执行 runMode 之后的代码**；子线程 RunLoop 没有 UITrackingRunLoopMode 模式。
+
+一旦调用 [currentRunLoop run] 这个方法开启子线程的运行循环就不能停止，阻塞 run 之后代码执行，子线程也不会被释放。 
+
+```objective-c
+- (void)timerCount {
+    NSLog(@"3");
+}
+NSLog(@"1");
+dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    NSTimer *timer = [NSTimer timerWithTimeInterval:1.0 target:self selector:@selector(timerCount) userInfo:nil repeats:NO];
+    [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
+    [[NSRunLoop currentRunLoop] run];
+    // timer结束后，触发breakPoint
+    NSLog(@"2");
+});
+NSLog(@"4");
+repeats==NO  
+[[NSRunLoop currentRunLoop]run];    //print: 1=>4=>3=>2  卡住当前列队等待timer执行完
+[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];                    //print: 1=>4=>3=>2  卡住当前线程等待timer执行完
+[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.5]]; //print: 1=>4=>2  runloop失效导致Timer不执行
+
+repeats==YES 
+[[NSRunLoop currentRunLoop]run];    //print: 1=>4=>3=>3=>3... 循环不处理run之后的事情
+[[NSRunLoop currentRunLoop]runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];                    //print: 1=>4=>3=>3=>3... 循环不处理run之后的事情
+[[NSRunLoop currentRunLoop]runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.5]]; //print: 1=>4=>2 runloop失效导致Timer不执行
+
+```
+
+```objective-c
+- (void)timerCount {
+    NSLog(@"3");
+}
+NSLog(@"1");
+dispatch_async(dispatch_get_main_queue(), ^{
+    NSTimer *timer = [NSTimer timerWithTimeInterval:1.0 target:self selector:@selector(timerCount) userInfo:nil repeats:NO];
+    [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode]; //添加timer，使用默认runloop模式
+    [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
+    // timer结束后，不触发breakPoint
+    NSLog(@"2");
+});
+NSLog(@"4");
+
+repeats==NO  
+[[NSRunLoop currentRunLoop]run];    //print: 1=>4=>3    main_queue不处理run之后的事情
+[[NSRunLoop currentRunLoop]runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];                    //print: 1=>4=>2=>3 main_queue runloop不受影响
+[[NSRunLoop currentRunLoop]runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.5]]; //print: 1=>4=>2=>3 main_queue runloop不受影响
+repeats==YES 
+[[NSRunLoop currentRunLoop]run];    //print: 1=>4=>3=>3=>3...
+[[NSRunLoop currentRunLoop]runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];                    //print: 1=>4=>2=>3=>3...
+[[NSRunLoop currentRunLoop]runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.5]]; //print: 1=>4=>2=>3=>3...
+```
+
+调用 runUntilDate 会阻塞之后的代码执行，直到指定的时间过后才恢复执行。
+
+```objective-c
+[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:3.0]];
+// do something
+```
+
+##### 创建常驻子线程
+
+```objective-c
++ (NSThread *)networkThread {
+  static dispatch_once_t onceToken;
+  static NSThread *_networkThread;
+  dispatch_once(&onceToken, ^{
+      _networkThread = [[NSThread alloc] initWithTarget:[[self class] sharedInstance] selector:@selector(_runLoopThread) object:nil];
+      [_networkThread setName:@"com.network.request"];
+      [_networkThread setQualityOfService:[[NSThread mainThread] qualityOfService]];
+      [_networkThread start];
+  });
+  return _networkThread;
+}
+
+- (void)_runLoopThread {
+  // 直接使用run比较暴力，无法手动销毁线程
+  [[NSRunLoop currentRunLoop] addPort:[NSMachPort port] forMode:NSDefaultRunLoopMode];
+  [runLoop run]; 
+
+  /* 另一种形式
+  while (!_stopRunning) {
+      @autoreleasepool {
+          [[NSRunLoop currentRunLoop] addPort:[NSMachPort port] forMode:NSDefaultRunLoopMode];
+          [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
+      }
+  }
+  */
+}    
+```
+
+##### 同步等待
+
+在主线程中可以用 RunLoop 实现同步等待的操作，不会造成线程的阻塞，实际应用中存在代码中断执行的情况，等待异步的执行结果可以使用信号量 wait-signal。
+
+```objective-c
+__block BOOL isContinue = NO;
+dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    isContinue = YES;
+ });
+
+while (isContinue == NO) {
+    [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
+ }
+// isContinue为YES后执行后续代码
+```
 
 [**Runloop**](https://juejin.cn/post/6960941386828873758)
 
 [当面试官问Runloop时,想听到的答案](https://juejin.cn/post/7081932582576717831)
+
+https://blog.csdn.net/z119901214/article/details/82260795

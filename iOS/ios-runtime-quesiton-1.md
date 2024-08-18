@@ -194,4 +194,34 @@ objc_msgSendSuper2({self,
 
 函数内部逻辑，拿到第二个成员 - 当前类，通过superClass指针找到他的父类，从superClass开始搜索，最终结果是差不多的~
 
+
+
+**`1、分类里为什么不会生成实例变量？`**
+
+- 类的内存布局在编译的时候被确定，分类是在运行时加载。
+- 已经确定的内存布局不会被更改.
+
+**`2、在resolveInstanceMethod类方法里面通过class_addMethod实现消息的动态转发`**
+
+**`3、objc_msgSend Too many arguments to function call`**
+
+方法一：项目配置文件 -> Build Settings -> Enable Strict Checking of objc_msgSend Calls 这个字段默认为YES，修改为NO即可
+
+方法二：强制转换
+
+由于objc_msgSend函数本身是无返回值无参数的函数, 所以要给它强制转换类型代码如下:
+
+```objc
+ ((void (*) (id, SEL)) (void *)objc_msgSend)(callMe, @selector(callMeNow));
+ ((void (*) (id, SEL)) (void *)objc_msgSend)(callMe, sel_registerName("callMeNow"));
+```
+
+@selector(callMeNow)等价于sel_registerName("callMeNow"),都是SEL
+
+**`4、class_copyMethodList导致内存泄漏`**
+
+runtime中的class_copyMethodList能获取对应类所有方法。它导致内存泄漏的原因是，这class_copyMethodList函数是C层的，没有OC的自动指针管理，需要手动free。
+
+
+
 [**Runtime原理探究**](https://www.jianshu.com/p/d628f1b9e51e)
