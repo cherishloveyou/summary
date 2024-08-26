@@ -34,7 +34,6 @@ IOS项目中nonatomic和atomic分析
 }
 ```
 
-
 2、虽然在ARC模式下不用写其set方法，但是在底层还是会走到这里
 3、因为是多线程，且没有加锁保护，所以在一个线程走到[_name release]后，可能在另一个线程又一次去释放，这时候造成崩溃。
 4、把name属性的nonatomic改成atomic就不会崩溃了，因为atomic加锁了，是安全的。
@@ -66,7 +65,7 @@ _number++等价于
 
 > atomic是原子性的，nonatomic是非原子性的。
 > atomic原子性并不能保证多线程安全，只是能保证数据的完整性
-> 这个完整性体现在：使用者总能取到完整的值
+> 完整性体现在：使用者总能取到完整的值
 
 但是如果一个线程在多次修改某个属性时，另一个线程去读取属性时，可能会取到未修改好的属性，下面我们将举例来证明：
 
@@ -122,7 +121,7 @@ atomic 原理和作用
 {lock}
     if (property != newValue) { 
         [property release]; 
-         property = [newValue retain]; 
+        property = [newValue retain]; 
     }
 {unlock}
 

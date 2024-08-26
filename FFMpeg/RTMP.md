@@ -20,7 +20,7 @@ RTMP(Real Time Messaging Protocol)是一个应用层协议，靠底层可靠的�
 服务端必须等到收到C1之后才能发送S2
 服务端必须等到收到C2之后才能发送其他信息（控制信息和真实音视频等数据）
 
-**1.1 RTMP Message & 分块（chunk）**
+** RTMP Message & 分块（chunk）**
 
 RTMP 传输的数据称为Message，Message包含音视频数据和信令，传输时不是以Message为单位的，而是把Message拆分成Chunk发送，而且必须在一个Chunk发送完成之后才能开始发送下一个Chunk，每个Chunk中带有msg stream id代表属于哪个Message，接受端也会按照这个id来将chunk组装成Message。每个Chunk的默认大小是 128 字节，可以通过Set Chunk Size的控制信息设置Chunk数据量的最大值。通用的做法，RTMP Message Header不拆分到chunk data中，虽然规范上RTMP massage应该作为一个整体被拆分成chunk，但是由于RTMP massage header与chunk massage header信息重复，本着最小传输数据原则，一般做法是在chunk data中去掉此信息。
 
@@ -55,8 +55,7 @@ Chunk格式包含基本头、消息头、扩展时间戳和负载
 
 为什么RTMP要将Message拆分成不同的Chunk呢？通过拆分，数据量较大的Message可以被拆分成较小的“Message”，这样就可以避免优先级低的消息持续发送阻塞优先级高的数据。
 
-
-**1.2 消息分类**
+**消息分类**
 消息主要分为三类: **协议控制消息、数据消息、命令消息**等。
 
 协议控制消息
@@ -71,6 +70,32 @@ Command Message ID = 20 17
 此类型消息主要有NetConnection和NetStream两个类。
 Message被拆分成一个或多个Chunk，然后在网络上一个接一个的进行发送。
 默认Chunk Size是128字节
+
+
+
+**1）RTMP 消息分优先级的设计有什么好处？**
+
+RTMP 的消息优先级是：控制消息 > 音频消息 > 视频消息。当网络传输能力受限时，优先传输高优先级消息的数据。要使优先级能够有效执行，分块也很关键：将大消息切割成小块，可以避免大的低优先级的消息（如视频消息）堵塞了发送缓冲从而阻塞了小的高优先级的消息（如音频消息或控制消息）。
+
+**2）什么是 DTS 和 PTS？它们有什么区别？**
+
+DTS 是[解码时间戳](https://www.zhihu.com/search?q=解码时间戳&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"article"%2C"sourceId"%3A654279235})；PTS 是显示时间戳。
+
+虽然 DTS、PTS 是用于指导播放端的行为，但它们是在编码的时候由编码器生成的。
+
+当视频流中没有 B 帧时，通常 DTS 和 PTS 的顺序是一致的。但如果有 B 帧时，就回到了我们前面说的问题：解码顺序和播放顺序不一致了。DTS 告诉我们该按什么顺序解码这几帧图像，PTS 告诉我们该按什么顺序显示这几帧图像。
+
+**3）什么是 IDR 帧？它和 I 帧有什么区别？**
+
+[IDR 帧](https://www.zhihu.com/search?q=IDR 帧&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"article"%2C"sourceId"%3A654279235})全称叫做 Instantaneous Decoder Refresh，是 I 帧的一种。IDR 帧的作用是立刻刷新，重新算一个新的序列开始编码，使错误不致传播。
+
+IDR 帧有如下特性：
+
+- IDR 帧一定是 I 帧，严格来说 I 帧不一定是 IDR 帧（但一般 I 帧就是 IDR 帧）；
+- 对于 IDR 帧来说，在 IDR 帧之后的所有帧都不能引用任何 IDR 帧之前的帧的内容。与此相反，对于普通的 I 帧来说，位于其之后的 B 和 P 帧可以引用位于普通 I 帧之前的 I 帧（普通 I 帧有被跨帧参考的可能）；
+- 播放器永远可以从一个 IDR 帧播放，因为在它之后没有任何帧引用之前的帧。因此，视频开头的 I 帧一定是 IDR 帧；一个封闭类 GOP 的开头的 I 帧也一定是 IDR 帧。
+
+
 
 
 

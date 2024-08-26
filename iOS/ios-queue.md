@@ -82,7 +82,7 @@ dispatch_sync(dispatch_get_main_queue(), ^{
     NSLog(@"mainQueue_sync:1");
 });
 
-上述代码会造成死锁。原因：前提条件是当前 queue 为 main_queue。main_queue 为串行队列，在当前 queue 上调用 sync 函数。需要执行的 block 被放到当前 queue 的队尾等待被执行，因为这是一个串行的 queue，调用 sync 函数会阻塞当前队列，等待 block 被执行->这个 block 一直不会被执行-> sync 函数一直不返回，所以当前 queue 就被阻塞了，造成了死锁。
+上述代码会造成死锁。原因：前提条件是当前 queue 为 main_queue。main_queue 为串行队列，在当前 queue 上调用 sync 函数。需要执行的 block 被放到当前 queue 的队尾等待被执行，因为这是一个串行的 queue，调用 sync函数会阻塞当前队列，等待block被执行->这个block一直不会被执行-> sync函数一直不返回，所以当前 queue 就被阻塞了，造成了死锁。
 一般串行队列中 sync 到自身上会产生死锁，sync 到其他队列上一般不会产生死锁，如在自定义 queue 中 sync main_queue，等到 main_queue 执行完毕再继续执行操作。
 ```
 
@@ -93,7 +93,7 @@ serialQueue.async {
     serialQueue.sync {
         print(3)
     }
-  print(4)
+    print(4)
 }
 print(5)
   

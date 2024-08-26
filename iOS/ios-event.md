@@ -1,6 +1,18 @@
 # iOS 事件传递和处理
 
-## 什么是事件？
+iOS事件链有两条：事件的响应链。Hit-Testing事件的传递链。
+
+响应链：由离用户最近的view向系统传递。
+
+initial view –> super view –> ….. –> view controller –> window –> Application –> AppDelegate 
+
+传递链：由系统向离用户最近的view传递。
+
+UIKit –> active app’s event queue –> window –> root view –> …… –> lowest view  *在iOS中只有继承UIResponder的对象才能够接收并处理事件,UIResponder 是所有*响应对象的基类,在UIResponder类中定义了处理上述各种事件的接口.
+
+**触摸事件的传递是从父控件传递到子控件，** **也就是UIApplication->window->寻找处理事件最合适的view**
+
+### 是事件？
 
 这里讲的事件是**用户交互的抽象**，像IOHIDEvent和UIEvent都是不同处理阶段的封装。
 
@@ -13,8 +25,6 @@ IOHIDEvent是iOS系统对事件的封装，感兴趣可以看源码[IOHIDEvent.h
 1. 触屏事件（Touch Event）
 2. 运动事件（Motion Event）
 3. 远端控制事件（Remote-Control Event）
-
-
 
 ### 响应者链
 
@@ -34,7 +44,7 @@ First Responser --> The Window --> The Application --> nil（丢弃）
 
 
 
-## 用户点击手机屏幕的过程
+### 用户点击手机屏幕的过程
 
 **App外：用户点击->硬件响应->参数量化->数据转发->App接收。**
 
@@ -52,7 +62,7 @@ App启动时便会启动一个com.apple.uikit.eventfetch-thread子线程，负�
 
 确定目标视图之后，UIApplication便会发送事件，将UITouch和UIEvent发送给目标视图，触发其touches系列的方法。
 
-## UIKit寻找目标视图的过程
+### UIKit寻找目标视图的过程
 
 寻找的过程主要依赖两个UIView的方法：-hitTest:withEvent方法和-pointInsdie:withEvent方法。
 
@@ -85,7 +95,7 @@ UIView在调用子视图hitTest时，是先调用哪些子视图？
 
 > 从subview数组的末尾开始调用hitTest，subview数组下标越小，视图层级越低。
 
-## UIKit确定目标视图后的过程
+### UIKit确定目标视图后的过程
 
 当UIKit确定目标视图之后，就会创建UITouch，UITouch的window属性和view属性就是上面过程中的UIWindow和目标视图。
 
@@ -106,7 +116,7 @@ UIWindow的sendTouchesForEvent:方法调用的是我们熟悉的touches四大方
 
 
 
-# 手势处理发生在哪一步
+### 手势处理发生在哪一步
 
 手势（UIGestureRecognizer）是iPhone的重要交互方式，[手势识别](https://links.jianshu.com/go?to=https%3A%2F%2Fdeveloper.apple.com%2Fdocumentation%2Fuikit%2Ftouches_presses_and_gestures%2Fimplementing_a_custom_gesture_recognizer%2Fabout_the_gesture_recognizer_state_machine) 介绍了手势是如何识别，甚至可以添加自定义手势。
 
@@ -174,7 +184,7 @@ UIGestureRecognizer同样有touches系列方法：
 2. 手势识别：UIGestureEnvironment-> UIGestureRecognizer
 3. 响应链回调：targetView->Viewd->ViewController->UIWindow->UIApplication
 
-iOS的用户交互相关非常复杂。由于时间有限，这里仅仅从事件的传递和处理出发，来建立一个基础的认知。
+手势识别器在大多数情况下，识别屏幕触摸事件的优先级，比控件本身的方法的优先级高，另外在 `UIKit` 中，也对部分情况做了特殊处理，让 `UIKit` 控件有机会跳过父视图的手势识别，去获得事件的控制权。
 
 
 
@@ -196,4 +206,8 @@ iOS的用户交互相关非常复杂。由于时间有限，这里仅仅从事�
 
 
 
+https://juejin.cn/post/6905914367171100680
+
 https://juejin.cn/post/6844903905080410125
+
+https://blog.csdn.net/qq_72437394/article/details/141027922

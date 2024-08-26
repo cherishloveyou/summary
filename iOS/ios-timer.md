@@ -8,7 +8,7 @@ dispatch_after
 
 (void)performSelector:(SEL)aSelector withObject:(nullable id)anArgument afterDelay:(NSTimeInterval)delay;
 
-#### NSTimer
+## NSTimer
 
 NSTimer的初始化方式有几下几种。我们注意到分为invocation和selector两种调用方式，其实这两种区别不大，一般我们用selector方式较为方便。
 
@@ -103,7 +103,7 @@ NSTimer *timer  =  [NSTimer timerWithTimeInterval:1.0 target:self selector:@sele
 
 **不是解决了循环引用，target就可以释放了，别忘了在持有timer的类dealloc的时候执行invalidate。**
 
-何解决循环引用：
+解决循环引用：
 
 ##### 方式一：强引用的target变成了NSTimer的类对象
 
@@ -113,11 +113,15 @@ NSTimer *timer  =  [NSTimer timerWithTimeInterval:1.0 target:self selector:@sele
 
 
 
+## CADisplayLink
+
+CADisplayLink是一种定时器类型，它可以让你在每秒钟屏幕更新时执行一段代码。CADisplayLink定时器的精度非常高，因为它是和屏幕刷新频率同步的，所以可以确保动画的流畅度。另外，CADisplayLink定时器的调用方法是通过RunLoop进行的，它是线程安全的。
+
 ## GCD定时器
 
-GCD中的Dispatch Source其中的一种类型是DISPATCH_SOURCE_TYPE_TIMER，可以实现定时器的功能。注意的是需要把timer声明为属性，否则，由于这种timer并不是添加到runloop中的，直接就被释放了。
+GCD定时器实现原理是使用GCD的dispatch_source_t来创建一个定时器源（Dispatch Source类型是DISPATCH_SOURCE_TYPE_TIMER），然后将该定时器源与需要执行的任务关联起来。注意的是需要把timer声明为属性，否则，由于这种timer并不是添加到runloop中的，直接就被释放了。
 
-GCD定时器的好处是，他并不是加入runloop执行的，因此子线程也可以使用。也不会引起循环引用的问题。
+GCD定时器是和系统内核直接挂钩的和runloop没有任何关系，因此子线程也可以使用，也不会引起循环引用的问题。相比于传统的NSTimer和CADisplayLink，GCD定时器具有更高的精度和更好的性能，尤其是在多线程场景下表现更为优秀。
 
 ```objective-c
 WS(weakSelf);
@@ -128,6 +132,30 @@ dispatch_source_set_event_handler(timer, ^{
 });
 dispatch_resume(timer);
 ```
+
+另外一个很重要的注意事项**，dispatch_suspend 之后的 Timer，不能被释放**！下面的代码会引起崩溃：
+
+```objective-c
+- (void)dealloc {
+   dispatch_suspend(timer);
+   timer = nil; // EXC_BAD_INSTRUCTION 崩溃
+}
+```
+
+这是因为 GCD 的 dispatch source 在释放的时候会判断当前是否处于挂起状态。如果是挂起状态，则需要在调用 dispatch_resume() 恢复到活动状态后才能正常释放，否则会产生崩溃。
+
+## 总结
+
+CADisplayLink主要用于渲染动画，NSTimer用于周期性执行任务，而GCD定时器则更加灵活，可以在不同线程中执行任务，在开发中如果对定时器精度有过高的要求，建议使用GCD定时器。
+
+- dispatch_source_t相对于NSTimer，CADisplayLink更加精准，因为dispatch_source_t是基于系统内核实现的，不依赖于RunLoop机制；
+
+- NSTimer与CADisplayLink都是基于RunLoop(运行循环)实现的，也就是说NSTimer与CADisplayLink必须加入到RunLoop中才能正常的工作，由于RunLoop的运行机制，会导致出现不可避免的误差，产生误差的原因如下:
+
+> RunLoop每跑完一次圈再去`检查当前累计时间是否已经达到定时器所设置的间隔时间`，如果未达到，RunLoop将进入下一轮任务循环，待任务结束之后再去检查当前累计时间，如果RunLoop在处理耗时任务时，可能会导致累计时间已经超过了定时器的间隔时间，故定时器的回调会存在一定的误差；
+>
+
+
 
 ## dispatch_after
 
