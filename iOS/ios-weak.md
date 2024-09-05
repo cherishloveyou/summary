@@ -34,6 +34,10 @@ int main(){
 第二、weak和strong都是Objective-C的修饰词，而strong是通过runtime维护的一个自动计数表结构。
 综上：weak是有Runtime维护的weak表。
 
+而WeakTable是一个Hash表设计，以对象的地址为key，value是所有指向这个对象的weak指针的地址集合。通过这种设计，在废弃对象时，可以通过weak表快速找到value即所有weak指针并统一设置为nil并删除该记录。
+
+**所以苹果对于weak的实现其实类似于通知的实现，指明谁（weak指针）要监听谁（赋值对象）什么事件（dealloc操作）执行什么操作（置nil）。**
+
 在runtime源码中，可以找到'objc-weak.h'和‘objc-weak.mm’文件，并且在objc-weak.h文件中关于定义weak表的结构体以及相关的方法。
 
 ##### 2.1.weak表
@@ -504,7 +508,223 @@ objc_clear_deallocating该函数的动作如下：
 
 weak是Runtime维护了一个hash(哈希)表，用于存储指向某个对象的所有weak指针，Key是所指对象的地址，Value是weak指针的地址（这个地址的值是所指对象指针的地址）数组。
 
+### 动手实现弱引用置nil
 
+苹果是为了多个弱引用指针指向同一个对象才使用了表，而需要其中一个指针置nil的关键在于，监听dealloc操作。而其实在ARC里，重写dealloc方法就可以，但是怎么样不入侵整个类的dealloc方法呢？这时突破点在于，dealloc中做了。
+
+为了保证关联对象的引用指针为1，在weak赋值时只要创建一次就好了。由于我们需要置nil这个操作，关联对象的dealloc跑一个block是灵活性最大的选择了，也就是由关联对象持有一个block，并在weak赋值时顺便告诉这个block里面执行什么。
+
+
+
+##### 对象释放的时候做些事情
+
+> - 一般我们在做kvo、notification添加observer之后，dealloc里需要去removeObserver，忘记了就尴尬了，会发生异常
+> - 假如我在分类中做了监听了，我不能在分类中覆写dealloc而且苹果也不建议我们去swizzle dealloc方法，那么我们就需要一个机制在对象释放的时候去做些清理的工作
+
+其实这个需求可以简单描述为在对象释放的时候做一些额外的工作，了解对象dealloc的流程，我们发现对象释放时会移除关联对象如果有的话、移除weak引用如果有的话，那么我们就可以从这里来切入。
+
+对象dealloc的时候已经帮我们移除关联对象。
+
+思路就是：给对象添加一个关联对象(关联对象弱引用宿主对象同时提供一个block回调可供外部设置)，在关联对象释放的时候回调回来做额外的操作。
+
+```objectivec
+typedef void(^HCBlock)(__unsafe_unretained NSObject *target);
+
+/// 这个类主要是实现一些Association的应用场景
+@interface NSObject (HCWillDealloc)
+
+- (void)hc_doSthWhenDeallocWithBlock:(HCBlock)block;
+
+@end
+
+@interface HCAssociatedObject : NSObject
+
+- (instancetype)initWithTarget:(NSObject *)target;
+//- (instancetype)initWithBlock:(HCBlock)block target:(NSObject *)target;
+- (void)addActionBlock:(HCBlock)block;
+
+@end
+```
+
+这里支持设置多个回调，内部存储在关联对象的数组中，dealloc的时候遍历去执行回调
+
+```objectivec
+static char kHCAssociatedObjectKey;
+
+@implementation NSObject (HCWillDealloc)
+
+- (void)hc_doSthWhenDeallocWithBlock:(HCBlock)block {
+    if (block) {
+        // 这里尝试过设置一个HCBlock就生成一个HCAssociatedObject对象，然后将其追加到对象已有的NSMutableArray<HCAssociatedObject *>数组中，后面调试发现，在kvo remove observer的时候会crash；采用下面这种方式则没有该问题
+        HCAssociatedObject *associatedObject = objc_getAssociatedObject(self, &kHCAssociatedObjectKey);
+        if (!associatedObject) {
+            associatedObject = [[HCAssociatedObject alloc] initWithTarget:self];
+            objc_setAssociatedObject(self, &kHCAssociatedObjectKey, associatedObject, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            //这里用下面这句，在测试移除kvo的时候会异常。TODO：什么原因
+            //objc_setAssociatedObject(self, &kHCAssociatedObjectKey, associatedObject, OBJC_ASSOCIATION_RETAIN);
+        }
+        [associatedObject addActionBlock:block];
+    }
+}
+
+@end
+
+@interface HCAssociatedObject ()
+/*
+ void *objc_destructInstance(id obj)
+ {
+ if (obj) {
+ // Read all of the flags at once for performance.
+ bool cxx = obj->hasCxxDtor();
+ bool assoc = !UseGC && obj->hasAssociatedObjects();
+ bool dealloc = !UseGC;
+ 
+ // This order is important.
+ if (cxx) object_cxxDestruct(obj);
+ if (assoc) _object_remove_assocations(obj); // clear association
+ if (dealloc) obj->clearDeallocating(); // clear weak and other
+ }
+ 
+ return obj;
+ }
+ */
+@property (nonatomic, unsafe_unretained) NSObject *target;//这里不用weak是由于在target释放的时候，先释放关联对象，然后有weak引用会清除weak表数据，回调的地方拿到的就是nil了，使用unsafe_unretained
+//@property (nonatomic, copy) HCBlock deallocBlock;
+@property (nonatomic, strong) NSMutableArray<HCBlock> *deallocBlocks;
+
+@end
+
+@implementation HCAssociatedObject
+
+- (instancetype)initWithTarget:(NSObject *)target {
+    self = [super init];
+    if (self) {
+        _deallocBlocks = [NSMutableArray arrayWithCapacity:0];
+        _target = target;
+    }
+    
+    return self;
+}
+
+- (void)addActionBlock:(HCBlock)block {
+    [self.deallocBlocks addObject:[block copy]];
+}
+
+//- (instancetype)initWithBlock:(HCBlock)block target:(NSObject *)target {
+//    self = [super init];
+//    if (self) {
+//        _deallocBlock = block;
+//        _target = target;
+//    }
+//
+//    return self;
+//}
+
+- (void)dealloc {
+    [_deallocBlocks enumerateObjectsUsingBlock:^(HCBlock  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        obj ? obj(_target) : nil;
+    }];
+}
+@end
+```
+
+```objectivec
+- (void)testDoSthWhenDealloc {
+    UIScrollView *tmpView = [UIScrollView new];
+    [tmpView addObserver:self forKeyPath:@"backgroundColor" options:NSKeyValueObservingOptionNew context:nil];
+    [tmpView addObserver:self forKeyPath:@"frame" options:NSKeyValueObservingOptionNew context:nil];
+    [tmpView hc_doSthWhenDeallocWithBlock:^(NSObject * _Nonnull target) {
+        [target removeObserver:self forKeyPath:@"backgroundColor"];
+        NSLog(@"removeObserver:forKeyPath:backgroundColor");
+    }];
+    [tmpView hc_doSthWhenDeallocWithBlock:^(NSObject * _Nonnull target) {
+        [target removeObserver:self forKeyPath:@"frame"];
+        NSLog(@"removeObserver:forKeyPath:frame");
+    }];
+    /*
+     使用OBJC_ASSOCIATION_RETAIN设置关联对象会有一下异常
+     'Cannot remove an observer <ViewController 0x7f97a5f05e60> for the key path "backgroundColor" from <UIScrollView 0x7f97a787b000> because it is not registered as an observer.'
+     */
+}
+```
+
+在scrollView释放的时候就会执行设置的block回调了。
+
+实现细节代码中有注释，有2个需要注意的点
+
+- 关联对象弱引用宿主对象target不能声明为`weak`，要使用`unsafe_unretained` -- 这是由于：在target释放的时候，先释放关联对象，然后有weak引用会清除weak表数据，回调的地方拿到的就是nil了
+
+- 在设置关联对象的时候，用`OBJC_ASSOCIATION_RETAIN_NONATOMIC`，用`OBJC_ASSOCIATION_RETAIN`会出现异常，回调的时候target已经是空了，这个可以参照上面关于这两个策略的内部实现区别
+
+  
+
+关联对象弱引用宿主对象target不能声明为`weak`，要使用`unsafe_unretained` -- 这是由于：在target释放的时候，先释放关联对象，然后有weak引用会清除weak表数据，回调的地方拿到的就是nil了
+
+在设置关联对象的时候，用`OBJC_ASSOCIATION_RETAIN_NONATOMIC`，用`OBJC_ASSOCIATION_RETAIN`会出现异常，回调的时候target已经是空了，这个可以参照上面关于这两个策略的内部实现区别
+
+#### association属性的weak实现
+
+> 看了关联对象的policy，发现咋没有weak，weak这么好用，assign又有时会出问题；能不能自己实现一个了？
+
+**先看assign的问题**
+
+```objectivec
+- (void)testAssignCase {
+     static char kTestAssignKey;
+    {
+        {
+            UILabel *associatedLabel = [UILabel new];
+            objc_setAssociatedObject(self, &kTestAssignKey, associatedLabel, OBJC_ASSOCIATION_ASSIGN);
+        }
+        UILabel *label = objc_getAssociatedObject(self, &kTestAssignKey); // EXC_BAD_ACCESS
+    }
+}
+```
+
+这个用例在关联对象`associatedLabel`是assign出了作用域没有持有者强持有它进而就释放了，然后去读就`EXC_BAD_ACCESS`，要是有weak就好了，释放了就置为空了，避免了异常的发生。
+
+ **自己实现一个weak关联**
+
+> 我们要做的就是关联对象在释放的时候将宿主的该关联对象也移除，就可以避免由于assign的方式访问了非法内存的异常了
+
+前面已经介绍了一个应用，在对象释放的时候做些事情，那么我们在关联对象释放的时候，将宿主对象对应的该key的关联对象设置为nil，那么外部读的时候就是个nil，就避免了异常
+
+```objectivec
+/// 设置关联对象不支持weak的方式
+/// @param object 宿主对象
+/// @param key 关联key
+/// @param value 关联的对象
+extern void objc_setWeakAssociatedObject(id _Nonnull object, const void * _Nonnull key, id _Nullable value);
+
+void objc_setWeakAssociatedObject(id _Nonnull object, const void * _Nonnull key, id _Nullable value) {
+    if (value) {
+        //__weak typeof(object) weakObj = object;
+        [value hc_doSthWhenDeallocWithBlock:^(NSObject *__unsafe_unretained  _Nonnull target) {
+            objc_setAssociatedObject(object, key, nil, OBJC_ASSOCIATION_ASSIGN); // clear association
+        }];
+    }
+    objc_setAssociatedObject(object, key, value, OBJC_ASSOCIATION_ASSIGN); // call system imp
+}
+```
+
+这里实现细节就是在关联对象释放的时候，调用`objc_setAssociatedObject(object, key, nil, OBJC_ASSOCIATION_ASSIGN)`这样就把宿主对象的该key的关联对象清除了，外部读这个key的关联对象就是nil
+
+```objectivec
+- (void)testWeakCase {
+    // 如果关联对象也支持weak这种特性就好了，关联的对象释放了，自动置空，宿主对象再次获取拿到的是个nil
+    static char kTestWeakKey;
+    {
+        {
+            UILabel *associatedLabel = [UILabel new];
+            objc_setWeakAssociatedObject(self, &kTestWeakKey, associatedLabel);
+            //objc_setAssociatedObject(self, &kTestWeakKey, associatedLabel, OBJC_ASSOCIATION_ASSIGN);
+            //objc_setAssociatedObject(self, &kTestWeakKey, nil, OBJC_ASSOCIATION_ASSIGN);
+        }
+        UILabel *label = objc_getAssociatedObject(self, &kTestWeakKey);
+        NSLog(@"label = %@", label); // 输出结果：null
+    }
+}
+```
 
 [浅谈iOS之weak底层实现原理](https://blog.csdn.net/future_one/article/details/81606895)
 [浅谈iOS之weak底层实现原理](https://www.jianshu.com/p/f331bd5ce8f8)

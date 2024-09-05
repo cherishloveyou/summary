@@ -29,8 +29,8 @@ Annex-B 附录B, 指ITU-T的 Recommendation（h.264和h.265）在附录B中规�
 
 二、分隔
 
-- Annex-B：使用start code分隔NAL(start code为三字节或四字节，0x000001或0x00000001，一般是四字节)； SPS 和 PPS 在码流中分别作为一个 NALU，nalu header->nal_unit_type=7时，nalu payload中是SPS，nalu header->nal_unit_type=8时，nalu payload中是PPS。这种格式下SPS、PPS通常放在关键帧之前。
-- AVCC：使用NALU长度（固定字节，通常为4字节）分隔NAL；在头部包含extradata(或sequence header)的结构体。这种格式下SPS/PPS的存放位置和帧数据无关。例如普通模式下的mp4，SPS、PPS放在MOOV中，在帧数据后面.
+- Annex-B：使用**start code分隔NAL**(start code为三字节或四字节，0x000001或0x00000001，一般是四字节)； AnnexB常用于实时流，SPS 和 PPS 在码流中分别作为一个 NALU，nalu header->nal_unit_type=7时，nalu payload中是SPS，nalu header->nal_unit_type=8时，nalu payload中是PPS，这种格式下SPS、PPS通常放在关键帧之前。
+- AVCC：每个NALU之前包含长度信息，直接长度信息来定位和提取NAL。在头部包含extradata(或sequence header)的结构体。这种格式下SPS/PPS的存放位置和帧数据无关。例如普通模式下的mp4，SPS、PPS放在MOOV中，在帧数据后面.
 
 **SPS（Sequence Paramater Set）**又称作序列参数集。定义了视频序列的总体参数，例如帧率、分辨率、码率等等。
 
