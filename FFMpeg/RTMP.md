@@ -4,7 +4,7 @@ RTMP(Real Time Messaging Protocol)是一个应用层协议，靠底层可靠的�
 
 ### 1. RTMP连接
 
-首先进行tcp三次握手，通过TCP三次握手，可实现RTMP客户端与RTMP服务器的指定端口(默认端口为`1935`)建立一个可靠的网络连接。
+首先进行TCP三次握手，通过TCP三次握手可实现RTMP客户端与RTMP服务器的指定端口(默认端口为`1935`)建立一个可靠的网络连接。
 
 > TCP三次握手->RTMP握手->连接->创建流->播放->删除流
 
@@ -61,10 +61,10 @@ Chunk格式包含基本头、消息头、扩展时间戳和负载
 协议控制消息
 Message Type ID = 1 2 3 5 6和Message Type ID = 4两大类，主要用于协议内的控制
 数据消息
-Message Type ID = 8 9 18
-8: Audio 音频数据
-9: Video 视频数据
-18: Metadata 包括音视频编码、视频宽高等信息。
+**Message Type ID = 8 9 18**
+**8: Audio 音频数据**
+**9: Video 视频数据**
+**18: Metadata 包括音视频编码、视频宽高等信息。**
 命令消息
 Command Message ID = 20 17
 此类型消息主要有NetConnection和NetStream两个类。
@@ -91,13 +91,11 @@ DTS 是[解码时间戳](https://www.zhihu.com/search?q=解码时间戳&search_s
 
 IDR 帧有如下特性：
 
-- IDR 帧一定是 I 帧，严格来说 I 帧不一定是 IDR 帧（但一般 I 帧就是 IDR 帧）；
+- IDR 帧一定是 I 帧，严格来说 I 帧不一定是 IDR 帧（但一般I帧就是 IDR 帧）；
 - 对于 IDR 帧来说，在 IDR 帧之后的所有帧都不能引用任何 IDR 帧之前的帧的内容。与此相反，对于普通的 I 帧来说，位于其之后的 B 和 P 帧可以引用位于普通 I 帧之前的 I 帧（普通 I 帧有被跨帧参考的可能）；
 - 播放器永远可以从一个 IDR 帧播放，因为在它之后没有任何帧引用之前的帧。因此，视频开头的 I 帧一定是 IDR 帧；一个封闭类 GOP 的开头的 I 帧也一定是 IDR 帧。
 
-
-
-
+**4）RTMP 消息的缺点**
 
 - RTMP的容器格式FLV，存在不支持新的codec、不支持多音轨、时间戳精度过低等等缺陷；
 - RTMP基于TCP做传输，TCP的公平、可靠传输设计并不适用于实时音视频传输。

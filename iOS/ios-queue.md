@@ -101,3 +101,20 @@ print(5)
 
 通过dispatch_sync添加的任务，在哪个线程添加就会在哪个线程执行。因此向并发队列添加的任务，没有开启新线程，而是在主线程执行的
 ```
+
+#### dispatch_barrier_async
+
+- 这个函数传入的并发队列必须是自己通过dispatch_queue_create创建的
+- 如果传入的是一个串行或是一个全局并发队列，那这个函数变等同于dispatch_async的效果
+
+```objective-c
+dispatch_queue_t queue = dispatch_queue_create("rw", DISPATCH_QUEUE_CONCURRENT);
+dispatch_async(queue, ^{
+   // 读
+    [self read];
+});
+dispatch_barrier_async(queue, ^{
+    [self write];  // 写
+});
+```
+

@@ -218,7 +218,7 @@ OSStatus AudioUnitRender(
   }
 
   // Enable input on the input scope of the input element.
-  // 打开 Input Bus, 上面介绍到 Input Bus 和 Output Bus 是独立的, 这里我们只采集, 不播放, 所以只打开 Input Bus.
+  // 打开Input Bus,上面介绍到Input Bus和Output Bus是独立的, 这里我们只采集不播放, 所以只打开Input Bus.
   UInt32 enable_input = 1;
   if (CheckHasError(AudioUnitSetProperty(io_unit_, kAudioOutputUnitProperty_EnableIO,
                                       kAudioUnitScope_Input, kInputBus, &enable_input,

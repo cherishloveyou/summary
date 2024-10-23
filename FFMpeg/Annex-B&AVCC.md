@@ -30,7 +30,7 @@ Annex-B 附录B, 指ITU-T的 Recommendation（h.264和h.265）在附录B中规�
 二、分隔
 
 - Annex-B：使用**start code分隔NAL**(start code为三字节或四字节，0x000001或0x00000001，一般是四字节)； AnnexB常用于实时流，SPS 和 PPS 在码流中分别作为一个 NALU，nalu header->nal_unit_type=7时，nalu payload中是SPS，nalu header->nal_unit_type=8时，nalu payload中是PPS，这种格式下SPS、PPS通常放在关键帧之前。
-- AVCC：每个NALU之前包含长度信息，直接长度信息来定位和提取NAL。在头部包含extradata(或sequence header)的结构体。这种格式下SPS/PPS的存放位置和帧数据无关。例如普通模式下的mp4，SPS、PPS放在MOOV中，在帧数据后面.
+- AVCC：每个NALU之前包含长度信息，直接长度信息来定位和提取NAL。在头部包含extradata(或sequence header)的结构体。这种格式下SPS/PPS的存放位置和帧数据无关。例如普通模式下的mp4，SPS、PPS放在MOOV中，在帧数据后面。
 
 **SPS（Sequence Paramater Set）**又称作序列参数集。定义了视频序列的总体参数，例如帧率、分辨率、码率等等。
 
@@ -45,8 +45,6 @@ Annex-B 附录B, 指ITU-T的 Recommendation（h.264和h.265）在附录B中规�
 > **③ B Slice:**在 P Slice的基础上, B Slice中的CU也可以使用帧间预测,但是每个PB可以使用至多两个运动补偿预测信息。 B Slice可以使用图像参考列表list0和list1。
 
 **Tile **H.265/HEVC对H.264/AVC的改进之处还在于Tile概念的提出。一幅图像不仅可以划分为若干个 Slice,也可以划分为若干个Tile。即从水平和垂直方向将一幅图像分割为若干个矩形区域,一个矩形区域就是一个Tile。每个Tile包含整数个CTU,其可以独立解码。划分Tile的主要目的是在增强并行处理能力的同时又不引入新的错误扩散。Tile提供比CTB更大程度的并行(在图像或者子图像的层面上),在使用时无须进行复杂的线程同步
-
-
 
 > 在 extradata 中，SPS 和 PPS 的作用是为解码器提供视频序列的配置信息，以确保解码器能够正确地解释和处理视频数据。通过提供这些参数集，解码器能够准确地还原视频序列的特性，从而实现高质量的视频解码。
 

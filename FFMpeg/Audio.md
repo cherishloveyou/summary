@@ -33,3 +33,6 @@ Byte *dst = (Byte*)data.mutableBytes;
 memcpy(dst, audioDataBuffer, out_buffer_size);
 ```
 
+
+
+处理 Audio Unit 之外，还可以通过混音算法来实现混音，几乎所有的混音算法都是通过对输入的音频数据做线性叠加衍生出的，比如平均值法，[自适应加权](https://zhida.zhihu.com/search?content_id=144321339&content_type=Article&match_order=1&q=自适应加权&zhida_source=entity)等
