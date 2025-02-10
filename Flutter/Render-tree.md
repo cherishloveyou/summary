@@ -7,9 +7,18 @@ Flutter 中有三棵树：Widget 树，Element 树和 RenderObject 树。其中 
 ##### 三棵树介绍：
 
 1. Widget:只是一个配置，里面存储的是有关视图渲染的配置信息，包括布局、渲染属性、事件响应信息等。是不可变的，主要负责描述UI的属性和布局，不负责实际的渲染绘制，所以创建成本很低。
-2. Element 是分离 WidgetTree 和真正的渲染对象的中间层， WidgetTree 用来描述对应的Element 属性,同时持有Widget和RenderObject，存放上下文信息，通过它来遍历视图树，支撑UI结构。
+
+2. Element 是Widget在具体位置的实例化，它负责控制Widget的生命周期，持有了widget实例和renderObject实例，它和Widget继承自同一个类， WidgetTree 用来描述对应的Element 属性,同时持有Widget和RenderObject，存放上下文信息，通过它来遍历视图树，支撑UI结构。
+
+   ComponentElement，其他elements的宿主，它本身不包含RenderObject，而由它持有的element节点包含，像StatelessWidget 和StatefulWidget 中分别创建的StatelessElement和StatefulElement都是继承自ComponentElement
+
+   RenderObjectElement，参与layout或者绘制阶段的元素
+
 3. RenderObject (渲染树)用于应用界面的布局和绘制，负责真正的渲染，保存了元素的大小，布局等信息，实例化一个 RenderObject 是非常耗能的
+
 4. 根据渲染树生成 Layer 树，然后上屏显示，Layer 树中的节点都继承自 `Layer` 类。
+
+   
 
 我们可以把 Widget 当做菜谱，Element 是配菜，RenderObject 是烧菜和出菜。
 

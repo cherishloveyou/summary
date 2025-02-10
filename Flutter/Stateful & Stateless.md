@@ -86,9 +86,23 @@ StatefulWidget 是一个有状态的组件，构建Widget的状态还会发生�
 
 理解State的生命周期对flutter开发非常重要，如果想看详细的请参见 [state生命周期](https://links.jianshu.com/go?to=https%3A%2F%2Fbook.flutterchina.club%2Fchapter2%2Fflutter_widget_intro.html%23state%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F)，我这里对生命周期主要方法总结一下：
 
-- 1、`initState()：`当 widget 第一次插入到 widget 树时会被调用，对于每一个State对象，Flutter 框架只会调用一次该回调。
-- 2、`didChangeDependencies()：`当State对象的依赖发生变化时会被调用；
-- 3、`build()：`主要是用于构建 widget 子树的，会在如下场景被调用：
+- **1、createState()**
+
+​      在StatefulWidget被创建时调用，用于创建与该Widget关联的State对象。
+
+- **2、initState()**
+
+   在State对象创建后立即调用，通常用于初始化数据，如网络请求、动画控制器等。在这个阶段，不能使用BuildContext进行UI构建。
+
+- **3、didChangeDependencies()**
+
+  当State依赖的对象改变时调用
+
+  例如InheritedWidget更新时会触发此方法。它会在initState之后立即执行，并且可能会在依赖的InheritedWidget发生变化后再次执行。
+
+- **4、build(BuildContext context)**
+
+  要是用于构建 widget 子树的，每次Widget状态改变时都会被调用。这是实际创建和返回UI表示的地方。会在如下场景被调用：
 
 > 1、在调用`initState()`之后。
 >  2、在调用`didUpdateWidget()`之后。
@@ -96,20 +110,35 @@ StatefulWidget 是一个有状态的组件，构建Widget的状态还会发生�
 >  4、在调用`didChangeDependencies()`之后。
 >  5、在State对象从树中一个位置移除后（会调用deactivate）又重新插入到树的其它位置之后。
 
-- 4、`reassemble()：`此回调是专门为了开发调试而提供的，在热重载(hot reload)时会被调用，此回调在Release模式下永远不会被调用。
-- 5、`didUpdateWidget ()：`在新旧 widget 的key和runtimeType同时相等时didUpdateWidget()就会被调用。
-- 6、`deactivate()：`当 State 对象从树中被移除时，会调用此回调；
-- 7、`dispose()：`当 State 对象从树中被永久移除时调用；通常在此回调中释放资源；
+- **5、didUpdateWidget(covariant T oldWidget)**
 
-##### 小结
+  当Widget被重新构建时调用，例如父Widget的状态改变时。这允许子Widget响应父Widget的变化。
 
-前期开发记住几点就行了：
+- **6、setState(VoidCallback fn)**
+
+  用于更新状态并触发Widget的重新构建。
+
+  当调用setState时，Flutter会安排该Widget的build方法在未来的某个时间点被调用，以反映新的状态。
+
+- **7、deactivate()**
+
+  在State对象从Widget树中移除时调用。如果Widget被移除后没有被添加到其他Widget树中，则随后会调用dispose方法。
+
+- **8、dispose()**
+
+  在State对象被永久移除并释放资源时调用。这是清理资源（如取消订阅、释放控制器等）的好地方。
+
+  > `reassemble()：`此回调是专门为了开发调试而提供的，在热重载(hot reload)时会被调用，此回调在Release模式下永远不会被调用。
+
+##### 小结：
  1、先走`initState()`，后走`build()`；
  2、所有的UI构建要放在`build()`里面；
  3、刷新UI直接调用`setState()`；
  4、回收垃圾在`dispose()`。
 
-# 总结
+
+
+### 总结
 
 > - Q：什么时候使用`StatelessWidget`和`StatefulWidget`？
 >    A：如果一个UI在初始化之后就不用更新，那就使用`StatelessWidget`，反之`StatefulWidget`。
@@ -117,5 +146,3 @@ StatefulWidget 是一个有状态的组件，构建Widget的状态还会发生�
 >    A：`StatelessWidget`、`StatefulWidget`的build方法里面，如果第一子节点是`Scaffold`（带有`appBar、body、bottomNavigationBar`这种的），那就可以理解为这个页面是VC，反之可以理解为view。
 > - Q：iOS中的self在Flutter中是啥？
 >    A：首字母小写的`widget`。
-
-。

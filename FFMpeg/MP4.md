@@ -6,7 +6,7 @@ MP4文件由许多box组成，每个box包含不同的信息， 这些box以树�
 
 图2 主要box说明
 
-根节点之下，主要包含三个节点：ftyp、[moov](https://zhida.zhihu.com/search?content_id=208952033&content_type=Article&match_order=1&q=moov&zhida_source=entity)、mdat。
+根节点之下，**主要包含三个节点：ftyp、[moov](https://zhida.zhihu.com/search?content_id=208952033&content_type=Article&match_order=1&q=moov&zhida_source=entity)、mdat。**
 
 - **ftyp**：文件类型。描述遵从的规范的版本。
 - **moov box**：媒体的metadata信息。

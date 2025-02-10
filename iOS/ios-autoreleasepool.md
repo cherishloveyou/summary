@@ -46,9 +46,7 @@ retain 和 release 成对出现，不需要另加一个自动释放池来进行�
 }
 ```
 
-问题来了，正如刚才所说，正常情况下**出作用域时对象会被自动释放掉**，于是就造成了 obj_1 在想取得持有对象时 发现对象被释放掉了，这显然是不合理的。这就像是你满心欢喜在天猫买了个冰棒，拿到快递时发现冰棒竟然化没了，你说闹心不闹心。
-
-虽然道理是这个道理，但在实际工作时并没有这种情况发生，这是怎么回事呢？这其实就是autoreleasePool的功劳了，编译器会在return 之前提前把对象retain 并 注册到自动释放池 大体过程类似下面的代码（这里只是用于演示过程）
+问题来了，正如刚才所说，正常情况下**出作用域时对象会被自动释放掉**，于是就造成了 obj_1 在想取得持有对象时 发现对象被释放掉了，这显然是不合理的。这就像是你满心欢喜在天猫买了个冰棒，拿到快递时发现冰棒竟然化没了，你说闹心不闹心。虽然道理是这个道理，但在实际工作时并没有这种情况发生，这是怎么回事呢？这其实就是autoreleasePool的功劳了，编译器会在return 之前提前把对象retain 并 注册到自动释放池 大体过程类似下面的代码（这里只是用于演示过程）
 
 ```objectivec
 - (NSObject *)getObj {
@@ -172,13 +170,11 @@ NSMutableArray *arr = [NSMutableArray arrayWithObjects:@"hh", nil];
 
 这个代码块等价于
 
-```c
+```objective-c
 {
     //创建一个AutoreleasePool对象
     __AtAutoreleasePool *atautoreleasepoolobj = objc_autoreleasePoolPush(); 
-    
-    //这里创建自动释放的对象，创建的对象会被加入到AutoreleasePool对象里
-    ... ...    
+   //这里创建自动释放的对象，创建的对象会被加入到AutoreleasePool对象里  
    //给所有自动释放的对象发送一次release消息，并销毁AutoreleasePool对象
    objc_autoreleasePoolPop(atautoreleasepoolobj)
 }
@@ -205,16 +201,13 @@ NSMutableArray *arr = [NSMutableArray arrayWithObjects:@"hh", nil];
 
 如上图所示，`AutoreleasePool`在`Runloop`中的创建和销毁的过程如下:
 
-- App启动后，系统在主线程`RunLoop`里注册了两个`Observer`，其回调都是`_wrapRunLoopWithAutoreleasePoolHandler()`。
-- 第一个`Observer`监视一个事件：
-  - `Entry（即将进入Loop）`：调用`objc_autoreleasePoolPush`来创建自动释放池。
-- 第二个`Observer`监视了两个事件：
-  - `Before waiting（准备进入休眠）`：先调用`objc_autoreleasePoolPop`销毁旧的自动释放池，再调用`objc_autoreleasePoolPush`创建一个新的自动释放池。
-  - `Exit（即将退出Loop）`：调用`objc_autoreleasePoolPop`销毁自动释放池。
-- 第一个`observe`的`order`是`-2147483647`，优先级最高，保证创建释放池发生在其他所有回调之前。
-   第二个`Observer`的`order`是`2147483647`，优先级最低，保证销毁自动释放池发生在其他所有回调之后。
+- App启动后，包括主线程在内的每个线程，如果在线程中使用到了`AutoreleasePool`，则会创建两个`Observer`并添加到当前线程的`Runloop`中，通过这两个`Observer`进行对象的自动内存管理。
+- 第一个`Observer`并监听`kCFRunLoopEntry`消息，时机是在进入`Runloop`前，此`Observer`的优先级设置为`-2147483647`的最高优先级，以保证回调发生在`Runloop`其他事件前调用`objc_autoreleasePoolPush`来创建自动释放池。
+- 第二个`Observer`监听`kCFRunLoopBeforeWaiting`和`kCFRunLoopExit`消息，时机分别在进入`Runloop`休眠和退出`Runloop`时，先调用`objc_autoreleasePoolPop`销毁旧的自动释放池，再调用用`objc_autoreleasePoolPush`创建一个新的自动释放池。
 
-也就是说，在一个`RunLoop`事件开始的时候会自动创建一个`AutoreleasePool`，在事件结束时再自动销毁。上面举例的`imageNamed`方法内部创建的对象也是加入到主线程`RunLoop`创建的`AutoreleasePool`中实现延迟释放的。因此，通常在开发中不需要开发者自己创建`AutoreleasePool`。
+两个`Observer`都有相同的回调函数`_wrapRunLoopWithAutoreleasePoolHandler`，在第一次回调时会在内部调用`_objc_autoreleasePoolPush`函数，创建自动释放池。在`kCFRunLoopBeforeWaiting`将要进入休眠前，调用`_objc_autoreleasePoolPop`函数释放自动释放池中的对象，并调用`_objc_autoreleasePoolPush`函数创建一个新的释放池。在`kCFRunLoopExit`将要退出`Runloop`时调用`_objc_autoreleasePoolPop`函数，释放自动释放池中的对象。
+
+一个`RunLoop`事件开始的时候会自动创建一个`AutoreleasePool`，在事件结束时再自动销毁。上面举例的`imageNamed`方法内部创建的对象也是加入到主线程`RunLoop`创建的`AutoreleasePool`中实现延迟释放的。因此，通常在开发中不需要开发者自己创建`AutoreleasePool`。
 
 #### 手动创建AutoreleasePool的场景
 
@@ -231,6 +224,8 @@ NSMutableArray *arr = [NSMutableArray arrayWithObjects:@"hh", nil];
 - **编写非Cocoa程序时创建子线程。**
 
   Cocoa程序中的每个线程都维护自己的自动释放池块堆栈。而编写一个非Cocoa程序，比如`Foundation-only program`，这时如果创建了子线程，若不手动创建自动释放池，自动释放的对象将会堆积得不到释放，导致内存泄漏。
+  
+  
 
 这里就第二个场景举例，来说明在循环内使用`AutoreleasePool`对于降低内存峰值的作用。
 
@@ -294,6 +289,25 @@ for (int i = 0; i<1000000; i++) {
 - 在ARC中，自动释放的对象由编译器自主识别并发送autorelease消息，添加到AutoReleasePool中。
 
 
+
+### UIApplicationMain
+
+项目中经常会看到下面的代码，很多人的解释是“这个`autoreleasepool`是为了释放主线程的`autorelease`对象的”。但是，这个说法是错误的。`autoreleasepool`只负责自己作用域中添加的对象，而主线程在运行过程中，也会隐式创建`autoreleasepool`对象，这个`pool`是包含在`main`函数的`pool`里面的。
+
+所以，主线程`runloop`每次执行循环后，释放的对象是主线程的。而`main`函数的`autoreleasepool`释放的，是`main`函数中直接创建的对象。
+
+### 释放时机
+
+如果是在`viewDidLoad`方法中创建一个`autorelease`对象，并不是在这个方法结束后释放对象，这个说法是错误的。即便执行到`viewDidAppear`，依然不会释放对象。被`autorelease`修饰的对象，释放时机有两种。
+
+1. 如果通过代码添加一个`autoreleasepool`，在作用域结束时，随着`pool`的释放，就会释放`pool`中的对象。这种情况是及时释放的，并不依赖于`runloop`。
+2. 另一种就是由系统自动进行释放，系统会在`runloop`开始的时候创建一个`pool`，结束的时候会对`pool`中的对象执行`release`操作。
+
+
+
+
+
+https://www.jianshu.com/p/02d6de8e4dfa
 
 [AutoreleasePool的原理和实现](https://www.jianshu.com/p/1b66c4d47cd7)
 

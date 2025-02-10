@@ -1,62 +1,6 @@
-# **Flutter性能优化实践 **
+# **Flutter状态管理**
 
-Flutter作为一款高性能、高质量的移动开发框架，在开发过程中仍然需要进行一些性能优化，以确保应用的流畅性和响应速度。以下是一些关键的Flutter性能优化策略：
-
-#### 1、减少Widget重建
-
-- **使用const构造函数**：对于不会改变的Widget，使用const构造函数创建常量Widget，可以避免不必要的重建。
-- **合理使用Key**：在ListView或GridView等可滚动列表中，为**列表项指定Key**可以帮助Flutter识别哪些项发生了变化，从而只重建发生变化的项。
-- **减少刷新范围**：我们使用setState方法就可以轻松刷新页面，但是要尽力控制刷新范围，例如：倒计时功能，我们封装一个widget
-- **减少刷新次数：** 验证码输入6位数字，底部登陆按钮可用，我们不需要每次有文们输入的时候就刷新，给一个bool值判断
-- **避免在build方法中进行复杂操作**：build方法应该只负责构建UI，避免在其中进行复杂的计算或数据处理。
-- **错峰加载**：错峰加载的目的是为了避免因同一时间的大量构建，而产生卡顿现象
-
-- 在使用PageView.builder这个Widget时，我发现在左右滑动切换页面时会有卡顿的现象，onPageChanged就会回调结果，触发了页面的刷新代码。我们可以添加一个通知，滚动结束的时候才加载新的页面
-
-#### 2、避免不必要的UI重绘
-
-- **使用shouldRepaint方法**：在CustomPainter中，通过覆写shouldRepaint方法来判断是否需要重绘，避免不必要的绘制操作。 
-
-#### 3、优化图片加载
-
-- **使用缓存技术**：对于需要重复加载的图片，使用缓存技术可以减少网络请求和加载时间。Flutter提供了ImageCache等机制来支持图片缓存。
-- **图片通过阿里云处理**，下载小图
-
-#### 4、使用异步操作
-
-- **使用Future和Stream**：在Flutter中，Future和Stream是处理异步操作的主要方式，它们可以帮助开发者更好地管理异步流程。
-- 耗时计算：避免将一些耗时计算放在UI线程，我们可以把耗时计算放到Isolate去执行
-
-#### flutter长列表加载大量网络图片，程序直接崩溃
-
-- 1、图片通过阿里云处理，下载小图
-- 2、图片尽可能使用缓存，这个可以使用CachedNetworkImage插件实现
-- 4、运行过程中不变的组件使用const修饰（例如固定的icon)，这样可以复用组件，渲染效率更高。
-- 5、要么手动删缓存，要么把缓存大小弄小一点，就不会内存溢出了`
-
-```ini
-代码imageCache.maximumSize = 10
-```
-
-- 6、设置ScrollAwareImageProvider：判断快速滑动, 下载和解码会停止
-
-### Flutter 常用插件
-
-1. 网络请求 [dio](https://link.juejin.cn?target=https%3A%2F%2Flink.zhihu.com%2F%3Ftarget%3Dhttps%3A%2F%2Fpub.flutter-io.cn%2Fpackages%2Fdio)
-2. json解析 json_serializable
-3. 持久化操作本地存储 [shared_preferences](https://link.juejin.cn?target=https%3A%2F%2Flink.zhihu.com%2F%3Ftarget%3Dhttps%3A%2F%2Fpub.flutter-io.cn%2Fpackages%2Fshared_preferences)
-4. 路由管理 [fluro](https://link.juejin.cn?target=https%3A%2F%2Flink.zhihu.com%2F%3Ftarget%3Dhttps%3A%2F%2Fpub.flutter-io.cn%2Fpackages%2Ffluro)
-5. 网络加载图片并缓存本地 [cached_network_image](https://link.juejin.cn?target=https%3A%2F%2Flink.zhihu.com%2F%3Ftarget%3Dhttps%3A%2F%2Fpub.flutter-io.cn%2Fpackages%2Fcached_network_image)
-6. 屏幕适配 [flutter_screenutil](https://link.juejin.cn?target=https%3A%2F%2Flink.zhihu.com%2F%3Ftarget%3Dhttps%3A%2F%2Fpub.flutter-io.cn%2Fpackages%2Fflutter_screenutil)
-7. 极光推送 [jpush_flutter](https://link.juejin.cn?target=https%3A%2F%2Flink.zhihu.com%2F%3Ftarget%3Dhttps%3A%2F%2Fpub.flutter-io.cn%2Fpackages%2Fjpush_flutter)
-8. 全局状态管理 [provider](https://link.juejin.cn?target=https%3A%2F%2Flink.zhihu.com%2F%3Ftarget%3Dhttps%3A%2F%2Fpub.flutter-io.cn%2Fpackages%2Fprovider)
-9. 轮播图 [flutter_swiper](https://link.juejin.cn?target=https%3A%2F%2Flink.zhihu.com%2F%3Ftarget%3Dhttps%3A%2F%2Fpub.flutter-io.cn%2Fpackages%2Fflutter_swiper)
-10. 上拉刷新，下拉加载[pull_to_refresh](https://link.juejin.cn?target=https%3A%2F%2Flink.zhihu.com%2F%3Ftarget%3Dhttps%3A%2F%2Fpub.flutter-io.cn%2Fpackages%2Fpull_to_refresh)、[flutter_easyrefresh](https://link.juejin.cn?target=https%3A%2F%2Flink.zhihu.com%2F%3Ftarget%3Dhttps%3A%2F%2Fpub.flutter-io.cn%2Fpackages%2Fflutter_easyrefresh)
-11. 高德地图SDK插件[amap_flutter_map](https://link.juejin.cn?target=https%3A%2F%2Flink.zhihu.com%2F%3Ftarget%3Dhttps%3A%2F%2Fpub.flutter-io.cn%2Fpackages%2Famap_flutter_map)
-12. 是一个能够快速便捷的为原生应用提供 Flutter 混合的集成方案 FlutterBoost
-13. fluttertoast (toast)
-
-### Flutter状态管理setState&Provider&Bloc区别
+### setState&Provider&Bloc区别
 
 #### setState：
 
@@ -80,9 +24,12 @@ Flutter作为一款高性能、高质量的移动开发框架，在开发过程�
 Provider的作用主要有两个
 
 - 1、跨组件传值：利用 Flutter 的 `InheritedWidget` 机制来实现跨组件
+
 - 2、状态管理：利用`ChangeNotifier`实现状态刷新
 
-- - 对于实现了通知机制的状态对象（如 `ChangeNotifier`），你需要调用其通知方法（如 `notifyListeners()`）来告诉 Flutter 状态已经改变。`Provider`会监听这些变化，并**自动触发依赖于该状态的 widget 的重建。**
+- 对于实现了通知机制的状态对象（如 `ChangeNotifier`），你需要调用其通知方法（如 `notifyListeners()`）来告诉 Flutter 状态已经改变。`Provider`会监听这些变化，并**自动触发依赖于该状态的 widget 的重建。**
+
+  
 
 #### Provider对InheritedWidget有哪些优点
 
@@ -462,7 +409,9 @@ iOS中运行Flutter应用时，可能会遇到`MissingPluginException`错误，�
 
 ```css
 css
-{
+
+ 代码解读
+复制代码{
   "code":"",
   "message":"",
   "data":""
@@ -631,7 +580,9 @@ VSCode 编辑 launch.json -> 追加如下代码：
 
 ```json
 json
-{
+
+ 代码解读
+复制代码{
     "name": "Flutter: Attach to Device",
     "type": "dart",
     "request": "attach"

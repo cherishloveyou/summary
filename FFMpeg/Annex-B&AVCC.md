@@ -1,25 +1,77 @@
-## AneexB & AVCC
+## AnnexB & AVCC
 
-典型问题
-iOS 硬解264视频（MP4），出现绿屏，或上半部分正常下半部分绿屏。
-iOS 硬解265视频，同样也要解决的extradata处理问题。
-
-参：iOS11 VideoToolbox硬解HEVC
-
-首先来看两种格式：
-
-#### Annex-B 和 AVCC/HVCC
+H.264的两种打包/封装方法：[字节流](https://so.csdn.net/so/search?q=字节流&spm=1001.2101.3001.7020)AnnexB格式 AVCC格式(AVC1)
+放用于网络发送时，要封装成RTP格式
 
 H.264码流分Annex-B和AVCC两种格式。
 H.265码流是Annex-B和HVCC格式。
 
-(以下内容针对H.264，但大体也适用于H.265/HEVC)
+#### **H.264 NALU 概念**
 
-##### 别名
+H.264视频编码后的数据叫 `NALU(Network Abstraction Layer Units)`。每个NALU包都可以被单独的解析和处理，每个NALU包的第一个字节包含了NALU类型，bit3-bit7包含的内容尤其重要(bit 0一定是off的，bit1-2指定了这个NALU是否被其他NALU引用)。
 
-AVCC格式 也叫AVC1格式，MPEG-4格式，字节对齐，因此也叫Byte-Stream Format。用于mp4/flv/mkv, VideoToolbox。
-Annex-B格式 也叫MPEG-2 transport stream format格式（ts格式）, ElementaryStream格式。
-Annex-B 附录B, 指ITU-T的 Recommendation（h.264和h.265）在附录B中规定码流格式。
+NALU有多种类型，分为两大类：`VCL(Video Coding Layer)` 和 non-VCL。VCL是图像编码数据，non-VCL为编码参数信息。总共有19种不同的NALU格式。
+
+NALU结构头部指明类型，类型字段如下。
+
+#### Annex-B 
+
+> AnnexB格式每个NALU都包含起始码，且通常会周期性的在关键帧之前重复SPS和PPS,所以解码器可以从视频流随机点开始进行解码，实时的流格式.
+
+```c
+[start code]NALU | [start code] NALU |...
+```
+
+开始前缀（00000001或000001）＋NALU数据,绝大部分编码器的默认输出格式
+　　一共有两种起始码start_code
+　　　①3字节0x000001　　单帧多[slice](https://so.csdn.net/so/search?q=slice&spm=1001.2101.3001.7020)（即单帧多个NALU）之间间隔
+　　　②4字节0x00000001　帧之间，或者SPS等之前
+4字节类型的开始码在在连续的数据传输中非常有用，因为用字节来对齐、分割流数据，比如：用连续的31个bit0后接一个bit1来分割流数据，是很容易的。
+
+
+
+###### 防字节竞争处理（Annxb和AVCC均有）：RBSP👉EBSP
+
+```c
+用起始码定位NALU边界存在一个问题，即NALU中可能存在与起始码相同的数据。
+为了防止这个问题，在构建NALU时，需要在数据中的0x000000,0x000001,0x000002,0x000003中插入防竞争字节（Emulation Prevention Bytes)0x03，使其变为：
+0x000000 = 0x0000 03 00
+0x000001 = 0x0000 03 01
+0x000002 = 0x0000 03 02
+0x000003 = 0x0000 03 03
+解码器在检测到0x000003时，将0x03抛弃，恢复原始数据。
+```
+
+
+
+#### AVCC
+
+> 解码器配置参数在一开始就配置好了，系统可以很容易的识别NALU的边界，不需要额外的起始码，减少了资源的浪费，同时可以在播放时调到视频的中间位置。这种格式通常被用于可以被随机访问的多媒体数据，如存储在硬盘的文件。MP4、MKV通常用AVCC格式来存储。
+
+```c
+([extradata]) | ([length] NALU) | ([length] NALU) | ...
+```
+
+AVCC格式不使用起始码作为NALU的分界，每个帧最前面几个字节（通常4字节）是帧长度(一个大端格式的前缀1、2、4字节，代表NALU长度）。所以在解析AVCC格式的时候需要将指定的前缀字节数的值保存在一个头部对象中，这个都通常称为extradata或者sequence header。同时，SPS和PPS数据也需要保存在extradata或者叫’sequence header’中。
+
+```c
+第1字节：version (通常0x01) 
+第2字节：avc profile (值同第1个sps的第2字节) 
+第3字节：avc compatibility (值同第1个sps的第3字节) 
+第4字节：avc level (值同第1个sps的第3字节) 
+第5字节：前6位：保留全1,后2位：NALU Length字段大小减1，通常这个值为3，即NAL码流中使用3+1=4字节表示NALU的长度 
+第6字节：前3位：保留，全1,后5位：SPS NALU的个数，通常为1 
+第7字节开始后接1个或者多个SPS数据 
+SPS结构 
+[16位 SPS长度][SPS NALU data] 
+SPS数据后 
+第1字节：PPS的个数，通常为1 
+第2字节开始接1个或多个PPS数据 
+PPS结构 
+[16位 PPS长度][SPS NALU data]
+```
+
+
 
 ##### Annex-B&AVCC结构上的区别：
 
@@ -63,14 +115,14 @@ H.264/AVC extradata 语法
 
 H.264 extradata 示例（AVCC格式）
 
-```
+```c
 0x0000 | 01 64 00 1E FF E1 00 1F 67 64 00 1E AC C8 60 33  // E1: 1SPS  00 1F: SPS 31byte
 0x0010 | 0E F9 E6 FF C1 C6 01 C4 44 00 00 03 00 04 00 00 
 0x0020 | 03 00 B8 3C 58 B6 68 01 00 05 68 E9 78 47 2C     // 01: 1PPS  00 05: PPS 5byte
 
 ```
 
-```
+```c
 bits      
 8   version ( always 0x01 )  
 8   avc profile ( sps[0][1] )  
@@ -89,22 +141,21 @@ N   variable SPS NALU data
 N   variable PPS NALU data  
 ```
 
-
 H.265/HEVC extradata语法
 参照HEVCDecoderConfigurationRecord：（最小长度23字节）
 
 
 HEVC extradata 示例
 
- extradata    如上
- extrasize     111
+ extradata      如上
+ extrasize       111
  24 | 20           NAL type:  VPS
  25 | 00 01      VPS num:   1
  27 | 00 19      VPS size:  25字节
  54 | 21            NAL type:  SPS
  55 | 00 01      SPS num:   1
  57 | 00 29      SPS size:  41字节
-100| 22          NAL type:  PPS
+100| 22           NAL type:  PPS
 
 hvcC extradata是一种头描述的格式。而annex-b格式中，则是将VPS, SPS和PPS等同于普通NAL，用start code分隔，非常简单。Annex-B格式的”extradata”：
 start code+VPS+start code+SPS+start code+PPS
@@ -134,6 +185,12 @@ ffmpeg -i INPUT.mp4 -codec copy -bsf:v hevc_mp4toannexb OUTPUT.ts
 了解了H.264 extradata以及NAL组织结构，自然引出H.264码流结构的议题，下篇干脆系统分析下H.264, HEVC码流结构。
 
 
+
+典型问题
+iOS 硬解264视频（MP4），出现绿屏，或上半部分正常下半部分绿屏。
+iOS 硬解265视频，同样也要解决的extradata处理问题。
+
+参：iOS11 VideoToolbox硬解HEVC
 
 https://blog.csdn.net/yue_huang/article/details/75126155
 

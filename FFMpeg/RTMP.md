@@ -6,7 +6,7 @@ RTMP(Real Time Messaging Protocol)是一个应用层协议，靠底层可靠的�
 
 首先进行TCP三次握手，通过TCP三次握手可实现RTMP客户端与RTMP服务器的指定端口(默认端口为`1935`)建立一个可靠的网络连接。
 
-> TCP三次握手->RTMP握手->连接->创建流->播放->删除流
+> **TCP三次握手->RTMP握手->连接->创建流->播放->删除流**
 
 建立一个有效的RTMP Connection链接，首先要“ 握手”:
 
@@ -22,9 +22,9 @@ RTMP(Real Time Messaging Protocol)是一个应用层协议，靠底层可靠的�
 
 ** RTMP Message & 分块（chunk）**
 
-RTMP 传输的数据称为Message，Message包含音视频数据和信令，传输时不是以Message为单位的，而是把Message拆分成Chunk发送，而且必须在一个Chunk发送完成之后才能开始发送下一个Chunk，每个Chunk中带有msg stream id代表属于哪个Message，接受端也会按照这个id来将chunk组装成Message。每个Chunk的默认大小是 128 字节，可以通过Set Chunk Size的控制信息设置Chunk数据量的最大值。通用的做法，RTMP Message Header不拆分到chunk data中，虽然规范上RTMP massage应该作为一个整体被拆分成chunk，但是由于RTMP massage header与chunk massage header信息重复，本着最小传输数据原则，一般做法是在chunk data中去掉此信息。
+RTMP 传输的数据称为Message，**Message包含音视频数据和信令**，传输时不是以Message为单位的，而是把Message拆分成Chunk发送，而且必须在一个Chunk发送完成之后才能开始发送下一个Chunk，每个Chunk中带有msg stream id代表属于哪个Message，接受端也会按照这个id来将chunk组装成Message。每个Chunk的默认大小是 128 字节，可以通过Set Chunk Size的控制信息设置Chunk数据量的最大值。通用的做法，RTMP Message Header不拆分到chunk data中，虽然规范上RTMP massage应该作为一个整体被拆分成chunk，但是由于RTMP massage header与chunk massage header信息重复，本着最小传输数据原则，一般做法是在chunk data中去掉此信息。
 
-RTMP消息有两部分，消息头（Message Header）和有效负载（Message body）。
+**RTMP消息有两部分，消息头（Message Header）和有效负载（Message body）。**
 
 ```c
   0                   1                   2                   3
@@ -42,7 +42,7 @@ RTMP消息有两部分，消息头（Message Header）和有效负载（Message 
                          Message Header
 ```
 
-Chunk格式包含基本头、消息头、扩展时间戳和负载
+Chunk格式包含**基本头、消息头、扩展时间戳和负载**
 
 ```text
  +--------------+----------------+--------------------+--------------+
@@ -58,14 +58,14 @@ Chunk格式包含基本头、消息头、扩展时间戳和负载
 **消息分类**
 消息主要分为三类: **协议控制消息、数据消息、命令消息**等。
 
-协议控制消息
+**协议控制消息**
 Message Type ID = 1 2 3 5 6和Message Type ID = 4两大类，主要用于协议内的控制
-数据消息
+**数据消息**
 **Message Type ID = 8 9 18**
 **8: Audio 音频数据**
 **9: Video 视频数据**
 **18: Metadata 包括音视频编码、视频宽高等信息。**
-命令消息
+**命令消息**
 Command Message ID = 20 17
 此类型消息主要有NetConnection和NetStream两个类。
 Message被拆分成一个或多个Chunk，然后在网络上一个接一个的进行发送。
@@ -99,3 +99,57 @@ IDR 帧有如下特性：
 
 - RTMP的容器格式FLV，存在不支持新的codec、不支持多音轨、时间戳精度过低等等缺陷；
 - RTMP基于TCP做传输，TCP的公平、可靠传输设计并不适用于实时音视频传输。
+
+**5）RTMP 与WebRTC**
+
+RTMP（Real-Time Messaging Protocol）与WebRTC（Web Real-Time Communication）都是用于视频和音频流传输的技术，但它们在设计目标、使用场景和技术实现上有显著不同。以下是对两者的比较：
+
+##### 1. **协议层面**
+
+- **RTMP**:
+  - **类型**: 是一种基于 TCP 的协议，最初用于 Flash Player 与服务器之间传输音视频和数据流。
+  - **传输方式**: 由于 RTMP 的连接是基于 TCP，它提供可靠的数据传输，但可能导致一些延迟。
+- **WebRTC**:
+  - **类型**: 是一种基于 UDP 的协议，旨在实现浏览器或应用程序之间的低延迟点对点实时通信。
+  - **传输方式**: WebRTC 使用 UDP（包括 RTP）进行音视频流传输，因此能实现更低的延迟，适合互动应用。
+
+##### 2. **延迟**
+
+- RTMP:通常延迟为 2-3 秒，适合直播和实时流媒体播放，但不适合高互动性场景。
+- WebRTC:通常延迟小于 1 秒，适合需要实时交互（如视频通话、在线游戏等）的场合。
+
+##### 3. **使用场景**
+
+- **RTMP**:
+  - 通常用于流媒体推送（如将音视频流推送到流媒体服务器），适合直播、视频点播等场合。
+  - 常见于使用 Flash Player 的应用，虽然现在越来越少，因为 Flash 被逐步淘汰。
+- **WebRTC**:
+  - 更多用于实时点对点的音视频通话、在线会议、实时协作和游戏等。
+  - 由于其内置的浏览器支持（不需要额外的插件），适合各种 Web 应用。
+
+##### 4. **兼容性**
+
+- RTMP:
+  - 依赖 Flash Player, 原生支持有限。需要流媒体服务器（如 Adobe Media Server、Wowza、Red5）支持 RTMP。
+- WebRTC:
+  - 支持现代浏览器（例如 Chrome、Firefox、Safari 和 Edge），原生支持，无需安装额外插件或播放器。
+  - 依赖于 WebSocket 或其他信令机制进行连接的建立。
+
+##### 5. **编解码与适应性**
+
+- **RTMP**:
+  - 一般使用 H.264、AAC 等编解码器，虽然也可以支持多种编码格式，但对适应性要求不高。
+- **WebRTC**:
+  - 支持多种编解码器（如 VP8、VP9、Opus），具有动态带宽调整和网络条件适应能力，能够根据实际网络环境调整媒体流的质量。
+
+### 6. **安全性**
+
+- RTMP:
+  - 传统的 RTMP 协议没有内置加密，RTMPS 是其安全版本，但大多数实现的安全性不高。
+- WebRTC:
+  - 天生支持端到端加密，使用 DTLS 和 SRTP 来确保会话的安全性和隐私保护。
+
+##### 总结
+
+- **RTMP** 适合传统的流媒体直播场景，但因 Flash 的逐步淘汰，其应用正逐渐减少。
+- **WebRTC** 则非常适合需要实时低延迟通信的场景，特别是在 Web 和移动设备上的应用。
