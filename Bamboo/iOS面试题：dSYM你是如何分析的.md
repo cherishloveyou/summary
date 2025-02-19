@@ -1,5 +1,3 @@
-### 返回目录:[全网各大厂iOS面试题-题集大全](https://github.com/LGBamboo/iOS-Advanced)
-
 # dSYM你是如何分析的？
 
 **方法1 使用XCode**
@@ -29,4 +27,3 @@
 2. 特别当你的应用发布到多个渠道的时候，你需要对不同渠道的crash文件，写一个自动化的分析脚本的时候，这个方法就极其有用。
 3. 具体方法 请百度
 
-### 返回目录:[全网各大厂iOS面试题-题集大全](https://github.com/LGBamboo/iOS-Advanced)

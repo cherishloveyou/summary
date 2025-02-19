@@ -1,5 +1,3 @@
-### 返回目录:[全网各大厂iOS面试题-题集大全](https://github.com/LGBamboo/iOS-Advanced)
-
 # 如何优化 App 的的包大小？
 
 直接上建议：
@@ -45,5 +43,3 @@
         *   App Thinning
             *   使用 xcasset 管理图片。
         *   开启 BitCode
-
-### 返回目录:[全网各大厂iOS面试题-题集大全](https://github.com/LGBamboo/iOS-Advanced)

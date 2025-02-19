@@ -34,14 +34,14 @@
  **增加SO_SNDBUF的Buffer大小**。
 
 ```cpp
-    SOCKET sSocket = ...
-    ...
-    int nRcvBufferLen = 1024*1024;
-    int nSndBufferLen = 4*1024*1024;
-    int nLen          = sizeof(int);
+SOCKET sSocket = ...
+...
+int nRcvBufferLen = 1024*1024;
+int nSndBufferLen = 4*1024*1024;
+int nLen          = sizeof(int);
 
-    setsockopt(sSocket, SOL_SOCKET, SO_SNDBUF, (char*)&nSndBufferLen, nLen);
-    setsockopt(sSocket, SOL_SOCKET, SO_RCVBUF, (char*)&nRcvBufferLen, nLen);
+setsockopt(sSocket, SOL_SOCKET, SO_SNDBUF, (char*)&nSndBufferLen, nLen);
+setsockopt(sSocket, SOL_SOCKET, SO_RCVBUF, (char*)&nRcvBufferLen, nLen);
 ```
 
 - P帧丢失

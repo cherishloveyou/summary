@@ -1,5 +1,3 @@
-### 返回目录:[全网各大厂iOS面试题-题集大全](https://github.com/LGBamboo/iOS-Advanced)
-
 # 你一般是如何优化你的APP的?
 
 **一、首页启动速度**
@@ -49,10 +47,3 @@
 * code review（坚持code Review 持续重构代码。减少代码的逻辑复杂度）
 * 日常交流（经常分享一些代码，或者逻辑处理中的坑）
 
-### 返回目录:[全网各大厂iOS面试题-题集大全](https://github.com/LGBamboo/iOS-Advanced)
-
-***
-### 更多精选大厂 · iOS面试题答案PDF文集
-
-![](https://upload-images.jianshu.io/upload_images/17495317-e01b6f4e054727b7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-* 获取加小编的iOS技术交流圈：**[937 194 184](https://jq.qq.com/?_wv=1027&k=5PARXCI)**，直接获取

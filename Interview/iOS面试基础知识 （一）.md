@@ -286,8 +286,3 @@ cell.clickBlock = ^{
 3、B viewDidDisappear 
 4、A viewDidAppear
 
-# 资料推荐
-
-如果你正在跳槽或者正准备跳槽不妨动动小手，添加一下咱们的交流群[931542608](https://jq.qq.com/?_wv=1027&k=0674hVXZ)来获取一份详细的大厂面试资料为你的跳槽多添一份保障。
-
-![](https://upload-images.jianshu.io/upload_images/22877992-0bfc037cc50cae7d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)

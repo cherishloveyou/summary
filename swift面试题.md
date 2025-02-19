@@ -1,11 +1,8 @@
-* 总结关于swift的面试题------持续更新
-* 来源于网上、书籍等
-* [侵权即删-联系我](741136856@qq.com)
+* 1.Class 和 Struct 的区别
 
-#### 1.Class 和 Struct 的区别
 * 类是引用类型, 结构体为值类型
 
-* 结构体不可以继承
+* **结构体不可以继承**
 * 值类型被赋予给一个变量、常量或者被传递给一个函数的时候，其值会被拷贝
 * 引用类型在被赋予到一个变量、常量或者被传递到一个函数时，其值不会被拷贝。因此，引用的是已存在的实例本身而不是其拷贝
 
@@ -15,7 +12,7 @@
 * 在结构体内部用一个引用类型来存储实际的数据，在不进行写入操作的普通传递过程中，都是将内部的reference的应用计数+1，在进行写入操作时，对内部的reference做一次copy操作用来存储新的数据，防止和之前的reference产生意外的数据共享。
 
 * swift中提供该[isKnownUniquelyReferenced]函数，他能检查一个类的实例是不是唯一的引用，如果是，我们就不需要对结构体实例进行复制，如果不是，说明对象被不同的结构体共享，这时对它进行更改就需要进行复制。
- 	
+
 #### 3.defer的用法
 * 使用defer代码块来表示在函数返回前，函数中最后执行的代码。无论函数是否会抛出错误，这段代码都将执行。
 
@@ -66,6 +63,7 @@
 	- static修饰的类方法和属性包含了final关键字的特性，重写会报错
 * 2.class修饰方法和计算属性
 	- 我们同样可以使用class修饰方法和计算属性，但是不能够修饰存储属性。
+
  	- 类方法和计算属性是可以被重写的，可以使用class关键字也可以是static
 
 #### 7.自定义模式匹配模式
@@ -101,7 +99,7 @@
             return false
        }
 	}
-
+	
 	switch 80 {
 	   case "eighty":
      //编译通过并且匹配
@@ -153,14 +151,17 @@
 * 说 Swift 是函数式编程语言，是因为 Swift 支持 map, reduce, filter, flatmap 这类去除中间状态、数学函数式的方法，更加强调运算结果而不是中间过程。
 
 #### 12.请说明并比较以下关键词：Open, Public, Internal, File-private, Private
+
+Swift 的访问控制模型基于**模块**和**源文件**的概念
+
 * Swift 有五个级别的访问控制权限，从高到底依次为比如 Open, Public, Internal, File-private, Private。
 
-* 他们遵循的基本原则是：高级别的变量不允许被定义为低级别变量的成员变量。比如一个 private 的 class 中不能含有 public 的 String。反之，低级别的变量却可以定义在高级别的变量中。比如 public 的 class 中可以含有 private 的 Int。
+* 他们遵循的基本原则是：**高级别的变量不允许被定义为低级别变量的成员变量。比如一个 private 的 class 中不能含有 public 的 String。反之，低级别的变量却可以定义在高级别的变量中。比如 public 的 class 中可以含有 private 的 Int。**
 
-* Open 具备最高的访问权限。其修饰的类和方法可以在任意 Module 中被访问和重写；它是 Swift 3 中新添加的访问权限。
-* Public 的权限仅次于 Open。与 Open 唯一的区别在于它修饰的对象可以在任意 Module 中被访问，但不能重写。
-* Internal 是默认的权限。它表示只能在当前定义的 Module 中访问和重写，它可以被一个 Module 中的多个文件访问，但不可以被其他的 Module 中被访问。
-* File-private 也是 Swift 3 新添加的权限。其被修饰的对象只能在当前文件中被使用。例如它可以被一个文件中的 class，extension，struct 共同使用。
+* Open 具备最高的访问权限。其修饰的类和方法**可以在任意 Module 中被其他模块继承、重写只能用在类、类成员上。打包静态库给其他项目使用时就需使用`open`修饰。
+* Public 的权限仅次于 Open。与 Open 唯一的区别在于它修饰的对象可以在任意 Module 中被访问，但是其他模块不能继承、重写。
+* Internal 是默认的权限。它表示只能在当前定义的 Module 中访问和重写，它可以被一个 Module 中的多个文件访问，但不可以被其他的 Module 中被访问,只允许在定义的模块中访问， 不允许在其他模块中方法。通常用来隐藏文件内部实现细节。
+* File-private 其被修饰的对象只能在当前文件中被使用。例如它可以被一个文件中的 class，extension，struct 共同使用。
 * Private 是最低的访问权限。它的对象只能在定义的作用域内使用。离开了这个作用域，即使是同一个文件中的其他作用域，也无法访问。
 
 #### 13.请说明并比较以下关键词：strong, weak, unowned
@@ -174,9 +175,9 @@
 	- weak 和 unowned 的引入是为了解决由 strong 带来的循环引用问题。简单来说，就是当两个对象互相有一个强指向去指向对方，这样导致两个对象在内存中无法释放。
 	- weak 和 unowned 的使用场景有如下差别：
 
-		- 当访问对象时该对象可能已经被释放了，则用 weak。比如 delegate 的修饰。
-		- 当访问对象确定不可能被释放，则用 unowned。比如 self 的引用。
-		- 实际上为了安全起见，很多公司规定任何时候都使用 weak 去修饰。
+	  - 当访问对象时该对象可能已经被释放了，则用 weak。比如 delegate 的修饰。
+	  - 当访问对象确定不可能被释放，则用 unowned。比如 self 的引用。
+	  - 实际上为了安全起见，很多公司规定任何时候都使用 weak 去修饰。
 
 #### 14. 说说Swift为什么将String，Array，Dictionary设计成值类型？
 
@@ -222,7 +223,8 @@ let price = 0
   let alsoIncrementBySeven = incrementBySeven
   alsoIncrementBySeven()
   ```
-* `逃逸闭包`，当一个闭包作为参数传到一个函数中，但是这个闭包在函数返回之后才被执行，我们称该闭包从函数中逃逸。当你定义接受闭包作为参数的函数时，你可以在参数名之前标注 @escaping，用来指明这个闭包是允许“逃逸”出这个函数的。 例如网络请求⬇️
+* `逃逸闭包`，**当一个闭包作为参数传到一个函数中，但是这个闭包在函数返回之后才被执行，我们称该闭包从函数中逃逸。**当你定义接受闭包作为参数的函数时，你可以在参数名之前标注 @escaping，用来指明这个闭包是允许“逃逸”出这个函数的。 例如网络请求⬇️
+  
   ```swift
   func request(result:@escaping((String)->())){
       DispatchQueue.main.asyncAfter(wallDeadline: DispatchWallTime.now() + 10) {
@@ -230,27 +232,28 @@ let price = 0
       }
   }
   ```
-
-* `非逃逸闭包`, 永远不会离开一个函数的局部作用域的闭包就是非逃逸闭包。
+  
+* `非逃逸闭包`, ***永远不会离开一个函数的局部作用域的闭包就是非逃逸闭包***。
+  
   ```swift 
   func player(complete:(Bool)->()){
       complete(true)
   }
   ```
-* `自动闭包`，自动闭包是一种自动创建的闭包，用于包装传递给函数作为参数的表达式。这种闭包不接受任何参数，当它被调用的时候，会返回被包装在其中的表达式的值。当闭包作为参数传入 可用@autoclosure标记闭包参数 ，可将参数当函数调用而并非以闭包的形式。这种便利语法让你能够省略闭包的花括号，用一个普通的表达式来代替显式的闭包
+* `自动闭包`，自动闭包是一种自动创建的闭包，用于**包装传递给函数作为参数的表达式。这种闭包不接受任何参数，当它被调用的时候，会返回被包装在其中的表达式的值**。当闭包作为参数传入 可用@autoclosure标记闭包参数 ，可将参数当函数调用而并非以闭包的形式。这种便利语法让你能够省略闭包的花括号，用一个普通的表达式来代替显式的闭包
 
    ```swift 
     var customersInLine = ["Chris", "Alex", "Ewa", "Barry", "Daniella"]
     print(customersInLine.count)
     // 打印出“5”
-
+    
     let customerProvider = { customersInLine.remove(at: 0) }
     print(customersInLine.count)
     // 打印出“5”
-
+    
     print("Now serving \(customerProvider())!")
     // 打印出“Now serving Chris!”
-
+    
     print(customersInLine.count)
     // 打印出“4”
     
@@ -260,7 +263,7 @@ let price = 0
     }
     serve(customer: customersInLine.remove(at: 0)) 
     // 打印“Now serving Ewa!”
-
+    
     //不用  @autoclosure 修饰 
     func serve(customer customerProvider: () -> String) {
         print("Now serving \(customerProvider())!")

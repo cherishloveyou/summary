@@ -1,5 +1,3 @@
-### 返回目录:[全网各大厂iOS面试题-题集大全](https://github.com/LGBamboo/iOS-Advanced)
-
 # 你会如何存储用户的一些敏感信息，如登录的token
 
 使用keychain来存储,也就是钥匙串,使用keychain需要导入Security框架
@@ -82,7 +80,7 @@ iOS的keychain服务提供了一种安全的保存私密信息（密码，序列
 ```
 
 * 在别的类实现存储,加载,删除敏感信息方法
-```
+```objective-c
 // 用来标识这个钥匙串
 static NSString * const KEY_IN_KEYCHAIN = @"com.cs.app.allinfo";
 // 用来标识密码
@@ -103,11 +101,3 @@ static NSString * const KEY_PASSWORD = @"com.cs.app.password";
     [CSKeyChain delete:KEY_IN_KEYCHAIN];
 }
 ```
-
-### 返回目录:[全网各大厂iOS面试题-题集大全](https://github.com/LGBamboo/iOS-Advanced)
-
-***
-### 更多精选大厂 · iOS面试题答案PDF文集
-
-![](https://upload-images.jianshu.io/upload_images/17495317-e01b6f4e054727b7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-* 获取加小编的iOS技术交流圈：**[937 194 184](https://jq.qq.com/?_wv=1027&k=5PARXCI)**，直接获取

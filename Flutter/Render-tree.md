@@ -2,7 +2,7 @@
 
 Flutter 中有三棵树：Widget 树，Element 树和 RenderObject 树。其中 **`Widget`与 `Element` 是一对多的关系** ，**`Element` 与 `RenderObject` 是一一对应的关系**。
 
-当应用启动时 Flutter 会遍历并创建所有的 Widget 形成 Widget Tree，同时与 Widget Tree 相对应，通过调用 Widget 上的 createElement() 方法创建每个 Element 对象，形成 Element Tree。最后调用 Element 的 createRenderObject() 方法创建每个渲染对象，形成一个 Render Tree。 Element就是Widget在UI树具体位置的一个实例化对象，大多数Element只有唯一的renderObject，但还有一些Element会有多个子节点，如继承自RenderObjectElement的一些类，比如MultiChildRenderObjectElement。最终所有Element的RenderObject构成一棵树，我们称之为”Render Tree“即”渲染树“。总结一下，我们可以认为Flutter的UI系统包含三棵树：Widget树、Element树、渲染树。他们的依赖关系是：根据Widget树生成Element树，再依赖于Element树生成RenderObject 树。
+当应用启动时 Flutter 会遍历并创建所有的 Widget 形成 Widget Tree，同时与 Widget Tree 相对应，**通过调用 Widget 上的 createElement() 方法创建每个 Element 对象**，形成 Element Tree。最后调用 Element 的 createRenderObject() 方法创建每个渲染对象，形成一个 Render Tree。 Element就是Widget在UI树具体位置的一个实例化对象，大多数Element只有唯一的renderObject，但还有一些Element会有多个子节点，如继承自RenderObjectElement的一些类，比如MultiChildRenderObjectElement。最终所有Element的RenderObject构成一棵树，我们称之为”Render Tree“即”渲染树“。总结一下，我们可以认为Flutter的UI系统包含三棵树：Widget树、Element树、渲染树。他们的依赖关系是：根据Widget树生成Element树，再依赖于Element树生成RenderObject 树。
 
 ##### 三棵树介绍：
 

@@ -4,14 +4,14 @@ Flutter作为一款高性能、高质量的移动开发框架，在开发过程�
 
 #### 1、减少Widget重建
 
-- **使用const构造函数**：对于不会改变的Widget，使用const构造函数创建常量Widget，可以避免不必要的重建。
-- **合理使用Key**：在ListView或GridView等可滚动列表中，为**列表项指定Key**可以帮助Flutter识别哪些项发生了变化，从而只重建发生变化的项。
-- **减少刷新范围**：我们使用setState方法就可以轻松刷新页面，但是要尽力控制刷新范围，例如：倒计时功能，我们封装一个widget
-- **减少刷新次数：** 验证码输入6位数字，底部登陆按钮可用，我们不需要每次有文们输入的时候就刷新，给一个bool值判断
-- **避免在build方法中进行复杂操作**：build方法应该只负责构建UI，避免在其中进行复杂的计算或数据处理。
-- **错峰加载**：错峰加载的目的是为了避免因同一时间的大量构建，而产生卡顿现象
+**使用const构造函数**：对于不会改变的Widget，使用const构造函数创建常量Widget，可以避免不必要的重建。
+**合理使用Key**：在ListView或GridView等可滚动列表中，为**列表项指定Key**可以帮助Flutter识别哪些项发生了变化，从而只重建发生变化的项。
+**减少刷新范围**：我们使用setState方法就可以轻松刷新页面，但是要尽力控制刷新范围，例如：倒计时功能，我们封装一个widget
+**减少刷新次数：** 验证码输入6位数字，底部登陆按钮可用，我们不需要每次有文们输入的时候就刷新，给一个bool值判断
+**避免在build方法中进行复杂操作**：build方法应该只负责构建UI，避免在其中进行复杂的计算或数据处理。
+**错峰加载**：错峰加载的目的是为了避免因同一时间的大量构建，而产生卡顿现象
 
-- 在使用PageView.builder这个Widget时，我发现在左右滑动切换页面时会有卡顿的现象，onPageChanged就会回调结果，触发了页面的刷新代码。我们可以添加一个通知，滚动结束的时候才加载新的页面
+在使用PageView.builder这个Widget时，我发现在左右滑动切换页面时会有卡顿的现象，onPageChanged就会回调结果，触发了页面的刷新代码。我们可以添加一个通知，滚动结束的时候才加载新的页面
 
 #### 2、避免不必要的UI重绘
 
@@ -24,21 +24,24 @@ Flutter作为一款高性能、高质量的移动开发框架，在开发过程�
 
 #### 4、使用异步操作
 
-- **使用Future和Stream**：在Flutter中，Future和Stream是处理异步操作的主要方式，它们可以帮助开发者更好地管理异步流程。
-- 耗时计算：避免将一些耗时计算放在UI线程，我们可以把耗时计算放到Isolate去执行
+**使用Future和Stream**：在Flutter中，Future和Stream是处理异步操作的主要方式，它们可以帮助开发者更好地管理异步流程。
+耗时计算：避免将一些耗时计算放在UI线程，我们可以把耗时计算放到Isolate去执行
 
 #### flutter长列表加载大量网络图片，程序直接崩溃
 
-- 1、图片通过阿里云处理，下载小图
-- 2、图片尽可能使用缓存，这个可以使用CachedNetworkImage插件实现
-- 4、运行过程中不变的组件使用const修饰（例如固定的icon)，这样可以复用组件，渲染效率更高。
-- 5、要么手动删缓存，要么把缓存大小弄小一点，就不会内存溢出了`
+1、图片通过阿里云处理，下载小图
+
+2、图片尽可能使用缓存，这个可以使用CachedNetworkImage插件实现
+
+4、运行过程中不变的组件使用const修饰（例如固定的icon)，这样可以复用组件，渲染效率更高。
+
+5、要么手动删缓存，要么把缓存大小弄小一点，就不会内存溢出了`
 
 ```ini
 代码imageCache.maximumSize = 10
 ```
 
-- 6、设置ScrollAwareImageProvider：判断快速滑动, 下载和解码会停止
+6、设置ScrollAwareImageProvider：判断快速滑动, 下载和解码会停止
 
 ### Flutter 常用插件
 
@@ -82,7 +85,7 @@ Provider的作用主要有两个
 - 1、跨组件传值：利用 Flutter 的 `InheritedWidget` 机制来实现跨组件
 - 2、状态管理：利用`ChangeNotifier`实现状态刷新
 
-- - 对于实现了通知机制的状态对象（如 `ChangeNotifier`），你需要调用其通知方法（如 `notifyListeners()`）来告诉 Flutter 状态已经改变。`Provider`会监听这些变化，并**自动触发依赖于该状态的 widget 的重建。**
+- 3、对于实现了通知机制的状态对象（如 `ChangeNotifier`），你需要调用其通知方法（如 `notifyListeners()`）来告诉 Flutter 状态已经改变。`Provider`会监听这些变化，并**自动触发依赖于该状态的 widget 的重建。**
 
 #### Provider对InheritedWidget有哪些优点
 
@@ -92,51 +95,52 @@ Provider的作用主要有两个
 
 #### 为什么使用Provider而不是Bloc（见仁见智）
 
-- **1、易用性和学习曲线**
+**1、易用性和学习曲线**
 
-- - **Provider的易用性：Provider是一个轻量级的状态管理库，它提供了简单而直观的API**，使得状态管理变得相对容易。开发者可以轻松地共享和更新应用中的状态
-  - **Bloc的学习曲线相对较陡峭。它采用了响应式编程的思想，** **并将业务逻辑与UI分离，增加了理解和掌握的难度**。但随着应用规模的增加，管理多个Bloc和它们之间的交互可能会变得复杂。这需要开发者具备良好的组织能力和架构设计能力。
+- **Provider的易用性：Provider是一个轻量级的状态管理库，它提供了简单而直观的API**，使得状态管理变得相对容易。开发者可以轻松地共享和更新应用中的状态
+- **Bloc的学习曲线相对较陡峭。它采用了响应式编程的思想，** **并将业务逻辑与UI分离，增加了理解和掌握的难度**。但随着应用规模的增加，管理多个Bloc和它们之间的交互可能会变得复杂。这需要开发者具备良好的组织能力和架构设计能力。
 
-- **2、性能考虑**
+**2、性能考虑**
 
-- - Provider的性能：Provider基于Flutter框架内置的InheritedWidget机制，能够在保持应用性能的同时提供简洁高效的状态管理功能。它不会给应用引入过多的复杂性和性能开销。
-  - Bloc的性能：虽然Bloc在性能上通常也能满足需求，但由于其复杂性和额外的抽象层，一些同学不能十分理解具体逻辑情况下可能会导致刷新问题
+Provider的性能：Provider基于Flutter框架内置的InheritedWidget机制，能够在保持应用性能的同时提供简洁高效的状态管理功能。它不会给应用引入过多的复杂性和性能开销。
 
-- - - 跟页面绑定太严重，如果以后想要切换库难度比较大
+Bloc的性能：虽然Bloc在性能上通常也能满足需求，但由于其复杂性和额外的抽象层，一些同学不能十分理解具体逻辑情况下可能会导致刷新问题
 
-- **3、社区支持和文档**
+跟页面绑定太严重，如果以后想要切换库难度比较大
 
-- - Provider的社区支持：Provider是Flutter官方推荐的状态管理解决方案之一，拥有庞大的用户群体和积极的开发团队
+**3、社区支持和文档**
 
-- **4、Bloc还要依赖各种其他三方库**
+- Provider的社区支持：Provider是Flutter官方推荐的状态管理解决方案之一，拥有庞大的用户群体和积极的开发团队
 
-- - rxdart
-  - flutter_bloc
-  - provider
-  - equal
+**4、Bloc还要依赖各种其他三方库**
+
+- rxdart
+- flutter_bloc
+- provider
+- equal
 
 ### 请简单介绍下Flutter框架，以及它的优缺点
 
 **优点**
 
-- **1、跨平台性**：Flutter能够使用同一份代码部署到iOS、Android、Web和桌面等多个平台，极大地降低了开发成本和时间。
-- **2、性能强大**：Flutter拥有高效的渲染引擎和优化的底层实现，能够提供流畅的用户体验和接近原生应用的性能。
-- **3、丰富的组件库**：Flutter提供了丰富的Material Design和Cupertino（iOS风格）组件，同时支持自定义组件样式和行为。
-- **4、热重载功能**：在开发过程中，Flutter支持热重载功能，可以在不重启应用的情况下即时看到代码更改的效果，提高开发效率。
+**1、跨平台性**：Flutter能够使用同一份代码部署到iOS、Android、Web和桌面等多个平台，极大地降低了开发成本和时间。
+**2、性能强大**：Flutter拥有高效的渲染引擎和优化的底层实现，能够提供流畅的用户体验和接近原生应用的性能。
+**3、丰富的组件库**：Flutter提供了丰富的Material Design和Cupertino（iOS风格）组件，同时支持自定义组件样式和行为。
+**4、热重载功能**：在开发过程中，Flutter支持热重载功能，可以在不重启应用的情况下即时看到代码更改的效果，提高开发效率。
 
 **缺点**
 
-- **1、适配问题**：随着操作系统和Flutter框架的不断更新，开发者可能需要修改大量的代码以适应新的版本和特性
-- 2、三方库有限，需要自己造轮子；
-- **3、代码可读性较差**：Flutter的代码可读性相对较差，特别是对于不熟悉Dart语言和Flutter框架的开发者来说，可能需要花费更多的时间来理解和维护代码。
-- **4、打包后文件较大**：由于Flutter应用包含了自己的渲染引擎和框架代码，因此打包后的应用文件相对较大，可能会影响应用的下载和安装速度。
+**1、适配问题**：随着操作系统和Flutter框架的不断更新，开发者可能需要修改大量的代码以适应新的版本和特性
+2、三方库有限，需要自己造轮子；
+**3、代码可读性较差**：Flutter的代码可读性相对较差，特别是对于不熟悉Dart语言和Flutter框架的开发者来说，可能需要花费更多的时间来理解和维护代码。
+**4、打包后文件较大**：由于Flutter应用包含了自己的渲染引擎和框架代码，因此打包后的应用文件相对较大，可能会影响应用的下载和安装速度。
 
 ### Widget生命周期
 
 flutter生命周期其实就是Widget的生命周期，生命周期的回调函数体现在了State上面。 主要可以分成两方面讨论
 
-- 1、StatelessWidget
-- 2、StatefulWidget
+1、StatelessWidget
+2、StatefulWidget
 
 #### 1、StatelessWidget
 
@@ -148,39 +152,41 @@ StatelessWidget是一个无状态的Widget，它不会根据用户交互或内�
 
 StatefulWidget是一个有状态的Widget，它可以根据状态的变化进行更新和重建。StatefulWidget的生命周期更为复杂，包括以下阶段：
 
-- **1、createState()**
+**1、createState()**
 
-- - 在StatefulWidget被创建时调用，用于创建与该Widget关联的State对象。
+在StatefulWidget被创建时调用，用于创建与该Widget关联的State对象。
 
-- **2、initState()**
+**2、initState()**
 
-- - 在State对象创建后立即调用，通常用于初始化数据，如网络请求、动画控制器等。在这个阶段，不能使用BuildContext进行UI构建。
+在State对象创建后立即调用，通常用于初始化数据，如网络请求、动画控制器等。在这个阶段，不能使用BuildContext进行UI构建。
 
-- **3、didChangeDependencies()**
+**3、didChangeDependencies()**
 
-- - 当State依赖的对象改变时调用
-  - 例如InheritedWidget更新时会触发此方法。它会在initState之后立即执行，并且可能会在依赖的InheritedWidget发生变化后再次执行。
+当State依赖的对象改变时调用
+- 例如InheritedWidget更新时会触发此方法。它会在initState之后立即执行，并且可能会在依赖的InheritedWidget发生变化后再次执行。
 
-- **4、build(BuildContext context)**
+**4、build(BuildContext context)**
 
-- - 用于构建Widget的子树。每次Widget状态改变时都会被调用。这是实际创建和返回UI表示的地方。
+用于构建Widget的子树。每次Widget状态改变时都会被调用。这是实际创建和返回UI表示的地方。
 
-- **5、didUpdateWidget(covariant T oldWidget)**
+**5、didUpdateWidget(covariant T oldWidget)**
 
-- - 当Widget被重新构建时调用，例如父Widget的状态改变时。这允许子Widget响应父Widget的变化。
+当Widget被重新构建时调用，例如父Widget的状态改变时。这允许子Widget响应父Widget的变化。
 
-- **6、setState(VoidCallback fn)**
+**6、setState(VoidCallback fn)**
 
-- - **用于更新状态并触发Widget的重新构建**。
-  - 当调用setState时，Flutter会安排该Widget的build方法在未来的某个时间点被调用，以反映新的状态。
+**用于更新状态并触发Widget的重新构建**。
+- 当调用setState时，Flutter会安排该Widget的build方法在未来的某个时间点被调用，以反映新的状态。
 
-- **7、deactivate()**
+**7、deactivate()**
 
-- - 在State对象从Widget树中移除时调用。如果Widget被移除后没有被添加到其他Widget树中，则随后会调用dispose方法。
+在State对象从Widget树中移除时调用。如果Widget被移除后没有被添加到其他Widget树中，则随后会调用dispose方法。
 
-- **8、dispose()**
+**8、dispose()**
 
-- - 在State对象被永久移除并释放资源时调用。这是清理资源（如取消订阅、释放控制器等）的好地方。
+在State对象被永久移除并释放资源时调用。这是清理资源（如取消订阅、释放控制器等）的好地方。
+
+
 
 ### 简单的解释下Flutter的FrameWork层和Engine层
 
@@ -196,16 +202,21 @@ Skia是Google的一个 2D的绘图引擎库
 
 自写UI渲染引擎实现跨平台
 
-- 1、 Dart 来构建UI 视图 
-- 2、`Skia` 交给 GPU 渲染
+1、 Dart 来构建UI 视图 
+
+2、`Skia` 交给 GPU 渲染
 
 **Flutter渲染流程大致如下：**
 
-- 1、在Dart framework中构建Widget树。
-- 2、调用rendering库，将Widget树转换为Element树。
-- 3、再将Element树转换为RenderObject树，进行布局和绘制。
-- 4、通过Skia引擎，将RenderObject树转换为GPU命令，并提交给GPU执行。
-- 5、GPU执行这些命令，最终将渲染结果显示在屏幕上。
+1、在Dart framework中构建Widget树。
+
+2、调用rendering库，将Widget树转换为Element树。
+
+3、再将Element树转换为RenderObject树，进行布局和绘制。
+
+4、通过Skia引擎，将RenderObject树转换为GPU命令，并提交给GPU执行。
+
+5、GPU执行这些命令，最终将渲染结果显示在屏幕上。
 
 ### 说下Widgets、RenderObjects 和 Elements的关系
 
@@ -227,59 +238,64 @@ BuildContext 主要用于构建 UI 和管理状态
 
 **Context记录当前Widget在Widget Tree中的具体位置和相关信息，用以保证各个子Widget和其parent的相对位置等信息**
 
-- 1、获取当前主题：final theme = Theme.of(context);
-- 2、查找父级 Widget：final parentWidget = context.widget;
-- 3、获取设备信息：
+1、获取当前主题：final theme = Theme.of(context);
 
-- - final mediaQuery = MediaQuery.of(context);
-  - final size = mediaQuery.size;
-  - final orientation = mediaQuery.orientation;
+2、查找父级 Widget：final parentWidget = context.widget;
 
-- 4、导航到新页面
-- 5、访问资源与数据
+3、获取设备信息：
+- final mediaQuery = MediaQuery.of(context);
+- final size = mediaQuery.size;
+- final orientation = mediaQuery.orientation;
 
-- - 资源访问：BuildContext可以用于访问与当前Widget相关联的资源，如本地化字符串、图片等。
-  - 数据传递：虽然BuildContext本身不直接用于数据传递，但它通过Widget树的结构，使得数据可以通过Widget的构造函数或InheritedWidget等方式在Widget之间传递。
+4、导航到新页面
+
+5、访问资源与数据
+
+资源访问：BuildContext可以用于访问与当前Widget相关联的资源，如本地化字符串、图片等。
+
+数据传递：虽然BuildContext本身不直接用于数据传递，但它通过Widget树的结构，使得数据可以通过Widget的构造函数或InheritedWidget等方式在Widget之间传递。
 
 #### 无BuildContext跳转
 
 MaterialApp的构造函数有个navigatorKey的参数，定义一个全局的GlobalKey, 再在需要使用当前BuildContext的地方，直接从GlobalKey中获取即可
 
-```swift
-swift
-
- 代码解读
-复制代码// 需要先配置到MaterialApp的navigatorKey属性才可真正使用
-  static final GlobalKey<NavigatorState> globalNavigatorKey =
+```dart
+static final GlobalKey<NavigatorState> globalNavigatorKey =
       GlobalKey<NavigatorState>();
-  var currentContext = GlobalKey.currentContext
+var currentContext = GlobalKey.currentContext
 ```
+
+
 
 ### **Flutter事件响应过程**
 
-- **1、** **事件接收**
+**1、** **事件接收**
 
-- - **入口点：** Flutter中事件的接收通常从引擎层开始，通过`_dispatchPointerDataPacket`等函数接收来自系统或设备的手势数据。这些数据包括按下、移动、抬起等基本的指针事件
-  - **数据转换**：接收到的手势数据（如PointerData）会被转换成Flutter内部使用的PointerEvent类或其子类
+**入口点：** Flutter中事件的接收通常从引擎层开始，通过`_dispatchPointerDataPacket`等函数接收来自系统或设备的手势数据。这些数据包括按下、移动、抬起等基本的指针事件
 
-- **2、命中测试（Hit Test）**
+**数据转换**：接收到的手势数据（如PointerData）会被转换成Flutter内部使用的PointerEvent类或其子类
 
-- - **触发时机**：当PointerDownEvent事件发生时，Flutter会触发命中测试。
-  - **测试过程**：命中测试按照深度优先的顺序遍历当前的渲染树（Render Tree），对每一个渲染对象（RenderObject）进行“命中测试”（hit test）。如果事件的位置与某个渲染对象相交，则认为该对象通过了命中测试，并将其添加到HitTestResult列表中。
+**2、命中测试（Hit Test）**
 
-- **3、事件分发（Event Dispatch）**
+**触发时机**：当PointerDownEvent事件发生时，Flutter会触发命中测试。
 
-- - **分发过程**：命中测试完毕后，Flutter会遍历HitTestResult列表，并调用列表中每个渲染对象的事件处理方法（如handleEvent）来处理事件。这个过程称为“事件分发”。
-  - **顺序**：由于命中测试是按照深度优先的顺序进行的，因此子组件会比父组件先加入HitTestResult列表，并在事件分发时先被调用。这保证了子组件能够优先响应事件
+**测试过程**：命中测试按照深度优先的顺序遍历当前的渲染树（Render Tree），对每一个渲染对象（RenderObject）进行“命中测试”（hit test）。如果事件的位置与某个渲染对象相交，则认为该对象通过了命中测试，并将其添加到HitTestResult列表中。
 
-- **4、事件处理**
+**3、事件分发（Event Dispatch）**
 
-- - **Widget响应**
+**分发过程**：命中测试完毕后，Flutter会遍历HitTestResult列表，并调用列表中每个渲染对象的事件处理方法（如handleEvent）来处理事件。这个过程称为“事件分发”。
 
-- **5、事件清理**
+**顺序**：由于命中测试是按照深度优先的顺序进行的，因此子组件会比父组件先加入HitTestResult列表，并在事件分发时先被调用。这保证了子组件能够优先响应事件
 
-- - **触发时机**：当PointerUpEvent或PointerCancelEvent发生时，表示手势结束或取消，此时会进行事件清理。
-  - **清理过程**：事件清理包括分发最后的事件（如PointerUpEvent）并清空HitTestResult列表，为下一次事件处理做准备。
+**4、事件处理**
+
+**Widget响应**
+
+**5、事件清理**
+
+**触发时机**：当PointerUpEvent或PointerCancelEvent发生时，表示手势结束或取消，此时会进行事件清理。
+
+**清理过程**：事件清理包括分发最后的事件（如PointerUpEvent）并清空HitTestResult列表，为下一次事件处理做准备。
 
 ### Flutter中的路由管理是如何实现的？
 
@@ -299,20 +315,23 @@ swift
 
 #### 我有三个页面，A、C是flutter页面，B是原生页面，我从A到B再到C，然后返回A，页面会卡死。但是如果只是从A到B再返回，或者是从A到C再返回
 
-- 1、**检查原生页面的生命周期**
-- **2、** **Flutter与原生页面的交互**：
+1、**检查原生页面的生命周期**
 
-- - 如果在Flutter和原生页面之间有数据交换或状态同步，确保这些操作在页面切换时能够正确处理。例如，使用`MethodChannel`或`EventChannel`时，确保在Flutter页面销毁时取消监听或发送停止信号
+**2、** **Flutter与原生页面的交互**：
 
-- 3、检查A页面是否有任何未完成的异步操作或监听器，确保在返回A页面时，A页面的状态被正确重置或恢复
-- 4、**导航和路由管理**：
+- 如果在Flutter和原生页面之间有数据交换或状态同步，确保这些操作在页面切换时能够正确处理。例如，使用`MethodChannel`或`EventChannel`时，确保在Flutter页面销毁时取消监听或发送停止信号
 
-- - 如果你使用的是Flutter的Navigator进行页面跳转，确保在返回A页面时，Navigator的堆栈被正确管理。例如，使用`Navigator.pop()`或`Navigator.popUntil()`来确保返回到正确的页面。
+3、检查A页面是否有任何未完成的异步操作或监听器，确保在返回A页面时，A页面的状态被正确重置或恢复
+
+4、**导航和路由管理**：
+
+- 如果你使用的是Flutter的Navigator进行页面跳转，确保在返回A页面时，Navigator的堆栈被正确管理。例如，使用`Navigator.pop()`或`Navigator.popUntil()`来确保返回到正确的页面。
 
 ### flutter run实际走了哪三个命令？分别用于什么操作？
 
-- `flutter build apk`：通过`gradle`来构建APK
-- `adb install`：安装APK
+`flutter build apk`：通过`gradle`来构建APK
+
+`adb install`：安装APK
 
 `adb am start`：启动应用
 
@@ -348,34 +367,37 @@ Dart代码：在lib目录下创建Dart文件，该文件将作为Flutter端与�
 
 Flutter 为开发者提供了一个轻量级的解决方案，即逻辑层的**方法通道（** **PlatformChannel** **）机制**
 
-- 1、**BasicMessageChannel** ：**基础数据传递**，如JSON对象或自定义数据结构。支持双向通信，即Flutter和原生端都可以主动发送消息
-- 2、**MethodChannel ：用于传递方法调用**，允许有返回值，适用于一次性的通信。同样支持双向通信，Flutter和原生端都可以调用对方的方法。
+1、**BasicMessageChannel** ：**基础数据传递**，如JSON对象或自定义数据结构。支持双向通信，即Flutter和原生端都可以主动发送消息
 
-- - 当需要从Flutter调用原生端的方法，并获取执行结果时，如打开系统设置、相机等。
-  - 原生端也可以主动调用Flutter的方法，实现更复杂的交互逻辑
+2、**MethodChannel ：用于传递方法调用**，允许有返回值，适用于一次性的通信。同样支持双向通信，Flutter和原生端都可以调用对方的方法。
 
-- 3、**EventChannel : 用于数据流（event streams）的通信**。支持原生端主动向Flutter发送数据流，如**传感器数据、用户输入**等。
+- 当需要从Flutter调用原生端的方法，并获取执行结果时，如打开系统设置、相机等。
+- 原生端也可以主动调用Flutter的方法，实现更复杂的交互逻辑
 
-- - 当原生端需要向Flutter发送实时数据流时，如实时定位数据、音频流等。
-  - 监听原生平台的状态变化，如网络状态、电池电量等。
+3、**EventChannel : 用于数据流（event streams）的通信**。支持原生端主动向Flutter发送数据流，如**传感器数据、用户输入**等。
+
+- 当原生端需要向Flutter发送实时数据流时，如实时定位数据、音频流等。
+- 监听原生平台的状态变化，如网络状态、电池电量等。
 
 **使用注意点**
 
-- 1、BasicMessageChannel
+1、BasicMessageChannel
 
-- - **Channel名称一致性**
-  - **编解码器一致性**
-  - 基本数据类型和集合类型，不支持自定义类型。
+- **Channel名称一致性**
+- **编解码器一致性**
+- 基本数据类型和集合类型，不支持自定义类型。
 
-- 2、MethodChannel
+2、MethodChannel
 
-- - **Channel名称唯一性**
-  - **方法调用与响应**：Flutter端可以调用原生端的方法，并获取返回值；同样，原生端也可以调用Flutter端的方法。需要确保方法名称和参数在两端一致。
-  - **异常处理**：在原生端处理方法时，应捕获并处理可能发生的异常，以避免应用崩溃。
+- **Channel名称唯一性**
+- **方法调用与响应**：Flutter端可以调用原生端的方法，并获取返回值；同样，原生端也可以调用Flutter端的方法。需要确保方法名称和参数在两端一致。
+- **异常处理**：在原生端处理方法时，应捕获并处理可能发生的异常，以避免应用崩溃。
 
-- 3、EventChannel
+3、EventChannel
 
-- - **线程安全**：在原生端处理Flutter发来的消息或调用时，需要注意线程安全问题。尤其是在Android平台上，可能需要使用主线程或其他线程来处理耗时操作。
+- **线程安全**：在原生端处理Flutter发来的消息或调用时，需要注意线程安全问题。尤其是在Android平台上，可能需要使用主线程或其他线程来处理耗时操作。
+
+  
 
 ### 简述下Flutter 的热重载
 
@@ -400,37 +422,36 @@ Key本身是一个抽象，不过它也有一个工厂构造器，创建出来�
 
 直接子类主要有：**LocalKey和GlobalKey**
 
-- LocalKey，它应用于具有相同父Element的Widget进行比较，也是diff算法的核心所在；
+LocalKey，它应用于具有相同父Element的Widget进行比较，也是diff算法的核心所在；
 
-- - LocalKey 是 Key 的基类，分为两种：ValueKey 和 ObjectKey，用于在局部 Widget 树中唯一标识某个 Widget。
-  - LocalKey有三个子类
+- LocalKey 是 Key 的基类，分为两种：ValueKey 和 ObjectKey，用于在局部 Widget 树中唯一标识某个 Widget。
+- LocalKey有三个子类
+  - `ValueKey` 使用具体的值（如字符串、数字）作为键，通常用于标识列表项等。
+  - ObjectKey：`ObjectKey` 使用某个对象作为键，适用于需要通过对象标识的场景。
+  - UniqueKey
 
-- - - `ValueKey` 使用具体的值（如字符串、数字）作为键，通常用于标识列表项等。
-    - ObjectKey：`ObjectKey` 使用某个对象作为键，适用于需要通过对象标识的场景。
-    - UniqueKey
+- 如果我们要确保key的唯一性，可以使用UniqueKey；
+- 比如我们之前使用随机数来保证key的不同，这里我们就可以换成UniqueKey；
 
-- - - - 如果我们要确保key的唯一性，可以使用UniqueKey；
-      - 比如我们之前使用随机数来保证key的不同，这里我们就可以换成UniqueKey；
+GlobalKey，**通常我们会使用GlobalKey某个Widget对应的Widget或State或Element**
 
-- GlobalKey，**通常我们会使用GlobalKey某个Widget对应的Widget或State或Element**
-
-- - GlobalKey 是一个全局唯一的键，用于标识整个应用中的特定 Widget。
-  - 它可以跨越 Widget 树的多个层次来访问 Widget，并提供更强的控制和状态管理。
+- GlobalKey 是一个全局唯一的键，用于标识整个应用中的特定 Widget。
+- 它可以跨越 Widget 树的多个层次来访问 Widget，并提供更强的控制和状态管理。
 
 ## Flutter跟原生交互遇到过什么问题
 
 #### 1、OOM堆内存溢出，内存暴涨
 
 - 1、长列表出现内存溢出问题
-
-- - 1、图片通过阿里云处理，下载小图
-  - 2、图片尽可能使用缓存，这个可以使用CachedNetworkImage插件实现
-  - 3、要么手动删缓存，要么把缓存大小弄小一点，就不会内存溢出了`
-  - 4、运行过程中不变的组件使用const修饰（例如固定的icon)，这样可以复用组件，渲染效率更高。
-  - 5、item设置key
-  - 6、设置ScrollAwareImageProvider：判断快速滑动, 下载和解码会停止
+  - 图片通过阿里云处理，下载小图
+  - 图片尽可能使用缓存，这个可以使用CachedNetworkImage插件实现
+  - 要么手动删缓存，要么把缓存大小弄小一点，就不会内存溢出了`
+  - 运行过程中不变的组件使用const修饰（例如固定的icon），这样可以复用组件，渲染效率更高。
+  - item设置key
+  - 设置ScrollAwareImageProvider：判断快速滑动, 下载和解码会停止
 
 - **2、数据传递**：在交互过程中传递大量数据（如图片、视频等）而未进行适当处理（如压缩、缓存等）也会增加内存负担。
+
 - 3、Flutter内存泄露
 
 #### 2、插件实现缺失错误
@@ -461,7 +482,6 @@ iOS中运行Flutter应用时，可能会遇到`MissingPluginException`错误，�
 **确定好格式**
 
 ```css
-css
 {
   "code":"",
   "message":"",
@@ -573,23 +593,1621 @@ FlutterViewController是iOS平台上的一个控制器，用于**管理Flutter�
 
 ##### 适用场景：
 
-**适用于整个应用都采用Flutter开发，且Flutter内部页面采用Flutter路由跳转的情况。**
 
-#### FlutterBoost
 
-**FlutterBoost是单引擎方案**
 
-**引擎复用**：FlutterBoost通过维护一个Flutter引擎缓存（如FlutterEngineCache类），来存储和复用Flutter引擎实例。当需要打开新的Flutter页面时，FlutterBoost会首先尝试从缓存中获取现有的引擎实例
 
-1. **高效的内存管理**：由于采用单引擎方案，FlutterBoost能够更有效地管理内存资源，减少内存占用。
-2. **简化的插件通道管理**：所有的Flutter页面都共享同一个FlutterEngine，因此插件通道也只需要管理一套，简化了插件的调用和管理。
-3. **增强的用户体验**：FlutterBoost提供了流畅的页面跳转和动态更新能力，增强了用户的体验。
 
-### 多引擎方案 FlutterEngineGroup
 
-多引擎方案指的是在iOS应用中，使用多个FlutterEngine来渲染不同的Flutter页面。
 
-1. **优点**：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++++
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 - - **页面跳转响应速度快**：由于采用不同的FlutterEngine交替渲染页面，因此页面跳转过程中无需对页面进行截图处理，从而提高了跳转速度。
   - **支持页面的动态变化**：每个显示在屏幕上的可见视图都是实际的FlutterView，因此页面的更新也是即时的。

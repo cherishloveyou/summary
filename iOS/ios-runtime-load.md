@@ -90,7 +90,6 @@ const char *load_images(enum dyld_image_states state, uint32_t infoCount,
             const struct dyld_image_info infoList[])
 {
     bool found;
-
     found = false;
     for (uint32_t i = 0; i < infoCount; i++) {
         if (hasLoadMethods((const headerType *)infoList[i].imageLoadAddress)) {
@@ -101,7 +100,6 @@ const char *load_images(enum dyld_image_states state, uint32_t infoCount,
     if (!found) return nil;
 
     recursive_mutex_locker_t lock(loadMethodLock);
-
     {
         rwlock_writer_t lock2(runtimeLock);
         found = load_images_nolock(state, infoCount, infoList);
@@ -110,7 +108,6 @@ const char *load_images(enum dyld_image_states state, uint32_t infoCount,
     if (found) {
         call_load_methods();
     }
-
     return nil;
 }
 ```
@@ -179,7 +176,6 @@ bool load_images_nolock(enum dyld_image_states state,uint32_t infoCount,
         prepare_load_methods(mhdr);
         found = YES;
     }
-
     return found;
 }
 ```

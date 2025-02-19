@@ -26,7 +26,7 @@ Flutter定义了三种不同类型的Channel，它们分别是
 
 ### **Android端：**
 
-```text
+```java
 BasicMessageChannel mBasicMessageChannel = new BasicMessageChannel(getFlutterView(), "basic_channel", StringCodec.INSTANCE);
 mBasicMessageChannel.setMessageHandler(new BasicMessageChannel.MessageHandler() {
     //接受消息
@@ -41,15 +41,15 @@ mBasicMessageChannel.send("向flutter发送消息");
 //发送消息并接受flutter的回馈
 mBasicMessageChannel.send("向flutter发送消息", new BasicMessageChannel.Reply() {
             @Override
-            public void reply(Object o) {
-                
-            }
+    public void reply(Object o) {
+
+    }
 });
 ```
 
 ### **Flutter端：**
 
-```text
+```dart
 const basicMessageChannel = const BasicMessageChannel('basic_channel', StringCodec());
 //接受并回复消息
 basicMessageChannel.setMessageHandler(
@@ -69,7 +69,7 @@ basicMessageChannel.send("来自flutter的message");
 
 Android端：
 
-```text
+```java
 MethodChannel mMethodChannel = new MethodChannel(getFlutterView(), "method_channel");
 mMethodChannel.setMethodCallHandler(new MethodChannel.MethodCallHandler() {
     //响应flutter端的调用
@@ -100,7 +100,7 @@ mMethodChannel.invokeMethod("noticeFlutter", "argument", new MethodChannel.Resul
 
 Flutter端：
 
-```text
+```dart
 const methodChannel = const MethodChannel('method_channel');
 Future<Null> getMessageFromNative() async {
     //flutter调原生方法
@@ -130,7 +130,7 @@ methodChannel.setMethodCallHandler(
 
 Android端：
 
-```text
+```java
 EventChannel eventChannel = new EventChannel(getFlutterView(),"event_channel");
 eventChannel.setStreamHandler(new EventChannel.StreamHandler() {
     @Override
@@ -147,7 +147,7 @@ eventChannel.setStreamHandler(new EventChannel.StreamHandler() {
 
 Flutter端：
 
-```text
+```dart
 const eventChannel = const EventChannel('event_channel');
 eventChannel.receiveBroadcastStream().listen(_onEvent,onError:_onError);
 void _onEvent(Object event) {

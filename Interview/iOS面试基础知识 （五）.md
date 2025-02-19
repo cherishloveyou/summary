@@ -181,8 +181,3 @@ id< HomeServiceProtocol > homeVc = [[BeeHive shareInstance] createService:@proto
 
 笔者推荐使用BeeHive这种方式来做组件化，基于Protocol（面向接口）的编程方式能让组件提供方清晰地提供接口声明给使用方；能充分利用编辑器特性，比如如果接口删除了一个参数，能通过编译器编不过来告诉调用方接口发生了变化。
 
-# 资料推荐
-
-如果你正在跳槽或者正准备跳槽不妨动动小手，添加一下咱们的交流群[**1012951431**](https://links.jianshu.com/go?to=https%3A%2F%2Fjq.qq.com%2F%3F_wv%3D1027%26k%3D5JFjujE)来获取一份详细的大厂面试资料为你的跳槽多添一份保障。
-
-![](https://upload-images.jianshu.io/upload_images/22877992-0bfc037cc50cae7d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)

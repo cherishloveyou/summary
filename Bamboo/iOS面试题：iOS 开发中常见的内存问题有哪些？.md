@@ -1,5 +1,3 @@
-### 返回目录:[全网各大厂iOS面试题-题集大全](https://github.com/LGBamboo/iOS-Advanced)
-
 # iOS开发中常见的内存问题有哪些？
 
 内存问题主要包括两个部分，一个是iOS中常见循环引用导致的内存泄露 ，另外就是大量数据加载及使用导致的内存警告。
@@ -215,27 +213,27 @@ VC 强引用 timer，因为 timer 的 target 是 MyTimerTarget 实例，所以 t
 
 GCD 提供的定时器叫 dispatch_source_t。使用方式如下：
 
-```
-    // 调用方
-    @property (strong, nonatomic) dispatch_source_t myGCDTimer;
-    - (void)viewDidLoad {
-        [super viewDidLoad];
-        dispatch_source_t timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0));
-        if (timer) {
-            self.myGCDTimer = timer;
-            dispatch_source_set_timer(timer, dispatch_walltime(NULL, 0), 1 * NSEC_PER_SEC, 1ull * NSEC_PER_SEC);
-            dispatch_source_set_event_handler(timer, ^ {
-                NSLog(@"doSomething");
-            });
-            dispatch_resume(timer);
-        }
+```objective-c
+// 调用方
+@property (strong, nonatomic) dispatch_source_t myGCDTimer;
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    dispatch_source_t timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0));
+    if (timer) {
+        self.myGCDTimer = timer;
+        dispatch_source_set_timer(timer, dispatch_walltime(NULL, 0), 1 * NSEC_PER_SEC, 1ull * NSEC_PER_SEC);
+        dispatch_source_set_event_handler(timer, ^ {
+            NSLog(@"doSomething");
+        });
+        dispatch_resume(timer);
     }
-    - (void)dealloc {
-        if (_myGCDTimer) {
-            dispatch_cancel(_myGCDTimer);
-        }
-        NSLog(@"MyViewController dealloc");
+}
+- (void)dealloc {
+    if (_myGCDTimer) {
+        dispatch_cancel(_myGCDTimer);
     }
+    NSLog(@"MyViewController dealloc");
+}
 ```
 
 更多详情见：[NSTimer 循环引用解决方案](https://www.jianshu.com/p/aaf7b13864d9)
@@ -269,11 +267,3 @@ GCD 提供的定时器叫 dispatch_source_t。使用方式如下：
 *   集成 [MLeaksFinder](https://github.com/Tencent/MLeaksFinder)。
 
 更多信息参加：[iOS App 稳定性指标及监测](https://juejin.im/post/58ca0832a22b9d006418fe43)
-
-### 返回目录:[全网各大厂iOS面试题-题集大全](https://github.com/LGBamboo/iOS-Advanced)
-
-***
-### 更多精选大厂 · iOS面试题答案PDF文集
-
-![](https://upload-images.jianshu.io/upload_images/17495317-e01b6f4e054727b7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-* 获取加小编的iOS技术交流圈：**[937 194 184](https://jq.qq.com/?_wv=1027&k=5PARXCI)**，直接获取
