@@ -29,7 +29,7 @@
     });
 }
 
-- (id)kc_safeObjectForKey：:(NSString *)key{
+- (id)kc_safeObjectForKey:(NSString *)key{
     __block NSString *temp;
     dispatch_sync(_concurrentQueue, ^{
         temp =[_dic objectForKey：key];

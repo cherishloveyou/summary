@@ -67,8 +67,6 @@ struct mach_header_64 {
 	uint32_t	flags;		/* 标志位标识二进制文件支持功能。主要和系统加载、连接有关 */
 	uint32_t	reserved;	/* reserved */
 };
-
-复制代码
 ```
 
 在`MachOView`工具上查看Header ![img](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5a4fbdfcdb5b4962a5091e78a0125853~tplv-k3u1fbpfcp-watermark.image)

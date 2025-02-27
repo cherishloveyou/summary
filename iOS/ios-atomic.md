@@ -1,6 +1,21 @@
 # iOS atomic
 
-IOS项目中nonatomic和atomic分析
+在iOS开发中，`atomic`和`nonatomic`是两种用于修饰属性的关键字，它们主要影响属性的线程安全性。
+
+### 一、定义与区别
+
+1. **atomic（原子属性）**：
+   - 是Objective-C的默认属性修饰符。
+   - 当一个属性被声明为`atomic`时，编译器会生成线程安全的存取方法，以确保在多线程环境下该属性的访问不会导致数据竞争。
+   - `atomic`属性内部使用自旋锁（spinlock）来实现线程安全。当一个线程尝试获取或设置`atomic`属性时，它会先获取自旋锁，执行操作后释放锁。这确保了同一时间只有一个线程能够访问该属性。
+   - 但需要注意的是，`atomic`只能保证单个操作的原子性，对于复合操作（如先检查后执行）仍然可能不安全。
+2. **nonatomic（非原子属性）**：
+   - 不会为修饰的成员变量的setter方法加锁。
+   - 虽然线程不安全，但效率高，适合内存小的移动设备。
+   - 在开发中，除非确实需要线程安全的属性，否则通常会选择`nonatomic`来避免不必要的性能损耗。
+
+### 
+
 //有两个属性，分别设置为nonatomic和atomic
 一、 10000个异步任务，修改name属性的值
 
@@ -119,10 +134,10 @@ atomic 原理和作用
 
 ```objc
 {lock}
-    if (property != newValue) { 
-        [property release]; 
-        property = [newValue retain]; 
-    }
+if (property != newValue) { 
+    [property release]; 
+    property = [newValue retain]; 
+}
 {unlock}
 
 ```
@@ -177,9 +192,8 @@ atomic在set方法里加了锁，防止了多线程一直去写这个property，
 @interface MONPerson : NSObject 
 @property (copy) NSString * firstName; 
 @property (copy) NSString * lastName; 
-
 - (NSString *)fullName; 
-  @end
+@end
 
 Thread A:
 p.firstName = @"Rob";
@@ -207,5 +221,22 @@ Thread B:
 结论：**用atomic修饰后，这个属性的setter、getter方法是线程安全的，但是对于整个对象来说不一定是线程安全的。**
 
 
+
+**使用场景**：
+
+- 如果属性在多线程环境下可能会被多个线程同时访问和修改，那么应该考虑使用`atomic`来保证线程安全。但需要注意的是，`atomic`并不能完全解决所有线程安全问题，对于复杂的线程同步需求，可能需要使用更高级的同步机制（如互斥锁、信号量等）。
+- 如果属性只在单线程环境下被访问，或者即使在多线程环境下也不会被多个线程同时修改，那么可以使用`nonatomic`来提高性能。
+
+**注意事项**：
+
+- UIKit框架中的类都是线程不安全的，因此更新UI的操作应该在主线程上执行。
+- 尽量避免在多线程中抢夺同一块资源，尽量将加锁、资源抢夺的业务逻辑交给服务器端处理，以减小移动客户端的压力。
+- 在使用`atomic`时，要注意其只能保证单个操作的原子性，对于复合操作需要特别小心。
+
+
+
+
+
+https://www.jianshu.com/p/a6b3081b9956
 
 https://blog.csdn.net/shifang07/article/details/100576587

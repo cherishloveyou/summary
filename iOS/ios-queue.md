@@ -21,7 +21,28 @@ Serial Dispatch Queue（串行队列）：等待正在执行中的处理结束�
 Concurrent Dispatch Queue（并发队列）：不等待现在执行中的处理是否结束，继续执行下面的处理。**只有在异步执行中，才能体现并发性**
 
 - 同步执行。不开启新的线程
+
 - 异步执行。开启新的线程
+
+  
+
+**『**主线程』中，『不同队列』+『不同任务』简单组合的区别：
+
+|     区别      |           并发队列           |             串行队列              |            主队列            |
+| :-----------: | :--------------------------: | :-------------------------------: | :--------------------------: |
+| 同步（sync）  | 没有开启新线程，串行执行任务 |   没有开启新线程，串行执行任务    |        死锁卡住不执行        |
+| 异步（async） |  有开启新线程，并发执行任务  | 有开启新线程（1条），串行执行任务 | 没有开启新线程，串行执行任务 |
+
+
+
+**『不同队列』+『不同任务』** 组合，以及 **『队列中嵌套队列』** 使用的区别：
+
+|     区别      | 『异步执行+并发队列』嵌套『同一个并发队列』 | 『同步执行+并发队列』嵌套『同一个并发队列』 | 『异步执行+串行队列』嵌套『同一个串行队列』 | 『同步执行+串行队列』嵌套『同一个串行队列』 |
+| :-----------: | :-----------------------------------------: | :-----------------------------------------: | :-----------------------------------------: | :-----------------------------------------: |
+| 同步（sync）  |       没有开启新的线程，串行执行任务        |        没有开启新线程，串行执行任务         |               死锁卡住不执行                |               死锁卡住不执行                |
+| 异步（async） |         有开启新线程，并发执行任务          |         有开启新线程，并发执行任务          |     有开启新线程（1 条），串行执行任务      |     有开启新线程（1 条），串行执行任务      |
+
+
 
 ```objective-c
 dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -100,8 +121,8 @@ dispatch_sync(dispatch_get_main_queue(), ^{
     NSLog(@"mainQueue_sync:1");
 });
 
-上述代码会造成死锁。原因：前提条件是当前 queue 为 main_queue。main_queue 为串行队列，在当前 queue 上调用 sync 函数。需要执行的 block 被放到当前 queue 的队尾等待被执行，因为这是一个串行的 queue，调用 sync函数会阻塞当前队列，等待block被执行->这个block一直不会被执行-> sync函数一直不返回，所以当前 queue 就被阻塞了，造成了死锁。
-一般串行队列中 sync 到自身上会产生死锁，sync 到其他队列上一般不会产生死锁，如在自定义 queue 中 sync main_queue，等到 main_queue 执行完毕再继续执行操作。
+//上述代码会造成死锁。原因：前提条件是当前 queue 为 main_queue。main_queue 为串行队列，在当前 queue 上调用 sync 函数。需要执行的 block 被放到当前 queue 的队尾等待被执行，因为这是一个串行的 queue，调用 sync函数会阻塞当前队列，等待block被执行->这个block一直不会被执行-> sync函数一直不返回，所以当前 queue 就被阻塞了，造成了死锁。
+//一般串行队列中 sync 到自身上会产生死锁，sync 到其他队列上一般不会产生死锁，如在自定义 queue 中 sync main_queue，等到 main_queue 执行完毕再继续执行操作。
 ```
 
 ```objective-c
@@ -123,7 +144,8 @@ NSLog(@"sync:5");
 
 ```objective-c
 NSLog(@"sync:1");    
-dispatch_queue_t queue = dispatch_queue_create("test", DISPATCH_QUEUE_SERIAL);   dispatch_async(queue, ^{ 
+dispatch_queue_t queue = dispatch_queue_create("test", DISPATCH_QUEUE_SERIAL);
+dispatch_async(queue, ^{ 
   NSLog(@"sync:2");
 });    
 NSLog(@"sync:3");    
@@ -154,7 +176,7 @@ sync:5
 ```objective-c
 dispatch_queue_t queue = dispatch_queue_create("rw", DISPATCH_QUEUE_CONCURRENT);
 dispatch_async(queue, ^{
-   // 读
+    //读
     [self read];
 });
 dispatch_barrier_async(queue, ^{
@@ -179,22 +201,21 @@ dispatch_barrier_async(queue, ^{
             NSLog(@"block1 %@", [NSThread currentThread]);
         }
     });
-    
     dispatch_sync(serialQueue, ^{
         for (int i = 0; i < 2; i++) {
             NSLog(@"block2 %@", [NSThread currentThread]);
         }
     });
-    
     dispatch_sync(serialQueue, ^{
         for (int i = 0; i < 2; i++) {
             NSLog(@"block3 %@", [NSThread currentThread]);
         }
     });
-    
     NSLog(@"test over");
 }
+```
 
+```
 因为是同步执行，所以不创建新的线程，在主线程中执行。
 因为是串行队列，所以队列的任务一个接一个地执行。
 因为所有任务都在test start和test over之间执行，所以说明任务一加入队列就立马执行。
@@ -209,6 +230,8 @@ dispatch_barrier_async(queue, ^{
 [915:40526] test over
 ```
 
+
+
 #### （2）串行队列+异步执行
 
 ```objectivec
@@ -216,19 +239,16 @@ dispatch_barrier_async(queue, ^{
     NSLog(@"test start");
     
     dispatch_queue_t serialQueue = dispatch_queue_create("com.ks.serialQueue", NULL);
-    
     dispatch_async(serialQueue, ^{
         for (int i = 0; i < 2; i++) {
             NSLog(@"block1 %@", [NSThread currentThread]);
         }
     });
-    
     dispatch_async(serialQueue, ^{
         for (int i = 0; i < 2; i++) {
             NSLog(@"block2 %@", [NSThread currentThread]);
         }
     });
-    
     dispatch_async(serialQueue, ^{
         for (int i = 0; i < 2; i++) {
             NSLog(@"block3 %@", [NSThread currentThread]);
@@ -400,17 +420,13 @@ dispatch_barrier_async(queue, ^{
 
 ```objective-c
 dispatch_queue_t queue = dispatch_queue_create("com.ks.serialQueue", NULL);
-    
 dispatch_async(queue, ^{
     [self KSmainQueueSync];
 });
 ```
 
-
-
 ```csharp
 输出结果分析：主队列是串行队列的一种，所以之前对串行队列的分析这里也适用
-
 - 因为是同步执行，所以不创建新的线程，在主线程中执行。
 - 因为是串行队列，所以队列的任务一个接一个地执行。
 - 因为所有任务都在`test start`和`test over`之间执行，所以说明任务一加入队列就立马执行。
@@ -431,27 +447,22 @@ dispatch_async(queue, ^{
 ```objectivec
 - (void)KSmainQueueAsync {
     NSLog(@"test start");
-    
     dispatch_queue_t mainQueue = dispatch_get_main_queue();
-    
     dispatch_async(mainQueue, ^{
         for (int i = 0; i < 2; i++) {
             NSLog(@"block1 %@", [NSThread currentThread]);
         }
     });
-    
     dispatch_async(mainQueue, ^{
         for (int i = 0; i < 2; i++) {
             NSLog(@"block2 %@", [NSThread currentThread]);
         }
     });
-    
     dispatch_async(mainQueue, ^{
         for (int i = 0; i < 2; i++) {
             NSLog(@"block3 %@", [NSThread currentThread]);
         }
     });
-    
     NSLog(@"test over");
 }
 ```
